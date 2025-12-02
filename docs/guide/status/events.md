@@ -1,12 +1,12 @@
-# Events Blocks Status
+# Events Blocks
 
-| Block | Opcode | Status | Notes |
-| :--- | :--- | :---: | :--- |
-| When Green Flag Clicked | `event_whenflagclicked` | ✅ | Via `#[on_flag_clicked]` attribute |
-| When Key (key) Pressed | `event_whenkeypressed` | ✅ | Via `#[on_key_pressed("key")]` attribute |
-| When this Sprite Clicked | `event_whenthisspriteclicked` | ❌ | |
-| When Backdrop Switches to (backdrop) | `event_whenbackdropswitchesto` | ❌ | |
-| When (loudness/timer/video) > (val) | `event_whengreaterthan` | ❌ | |
-| When I Receive (message) | `event_whenbroadcastreceived` | ❌ | |
-| Broadcast (message) | `event_broadcast` | ✅ | |
-| Broadcast (message) and Wait | `event_broadcastandwait` | ✅ | |
+| Scrust Syntax | Scratch Block | Notes |
+| :--- | :--- | :--- |
+| `#[on_flag_clicked]` | <pre class="blocks">when green flag clicked</pre> | Attribute for function/procedure |
+| `#[on_key_pressed("key")]` | <pre class="blocks">when [key v] key pressed</pre> | Attribute for function/procedure |
+| `#[on_broadcast_received("message")]` | <pre class="blocks">when I receive [message v]</pre> | Attribute for function |
+| `broadcast("message")` | <pre class="blocks">broadcast [message v]</pre> | |
+| `broadcast_and_wait("message")` | <pre class="blocks">broadcast [message v] and wait</pre> | |
+| `#[on_sprite_clicked]` | <pre class="blocks">when this sprite clicked</pre> | Attribute for function |
+| `#[on_backdrop_switches("backdrop")]` | <pre class="blocks">when backdrop switches to [backdrop v]</pre> | Attribute for function |
+| `#[on_greater_than("loudness", val)]` | <pre class="blocks">when [loudness v] > (val)</pre> | Attribute for function |

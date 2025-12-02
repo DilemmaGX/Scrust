@@ -457,6 +457,10 @@ fn compile_function(func: &Function, ctx: &mut CompilerContext) -> Option<String
             "on_flag_clicked" => Some("event_whenflagclicked"),
             "on_key_pressed" => Some("event_whenkeypressed"),
             "on_clone_start" => Some("control_start_as_clone"),
+            "on_broadcast_received" => Some("event_whenbroadcastreceived"),
+            "on_sprite_clicked" => Some("event_whenthisspriteclicked"),
+            "on_backdrop_switches" => Some("event_whenbackdropswitchesto"),
+            "on_greater_than" => Some("event_whengreaterthan"),
             _ => None,
         }
     } else {
@@ -488,6 +492,51 @@ fn compile_function(func: &Function, ctx: &mut CompilerContext) -> Option<String
                         "KEY_OPTION".to_string(),
                         Field::Generic(vec![json!(key), Value::Null]),
                     );
+                }
+            }
+        } else if opcode == "event_whenbroadcastreceived" {
+            if let Some(attr) = func.attributes.first() {
+                if let Some(Expr::String(broadcast_name)) = attr.args.first() {
+                    let id = ctx
+                        .broadcast_map
+                        .iter()
+                        .find(|(_, name)| *name == broadcast_name)
+                        .map(|(id, _)| id.clone());
+                    let id = if let Some(id) = id {
+                        id
+                    } else {
+                        let new_id = Uuid::new_v4().to_string();
+                        ctx.broadcast_map
+                            .insert(new_id.clone(), broadcast_name.clone());
+                        new_id
+                    };
+
+                    hat_block.fields.insert(
+                        "BROADCAST_OPTION".to_string(),
+                        Field::Generic(vec![json!(broadcast_name), json!(id)]),
+                    );
+                }
+            }
+        } else if opcode == "event_whenbackdropswitchesto" {
+            if let Some(attr) = func.attributes.first() {
+                if let Some(Expr::String(backdrop)) = attr.args.first() {
+                    hat_block.fields.insert(
+                        "BACKDROP".to_string(),
+                        Field::Generic(vec![json!(backdrop), Value::Null]),
+                    );
+                }
+            }
+        } else if opcode == "event_whengreaterthan" {
+            if let Some(attr) = func.attributes.first() {
+                if let Some(Expr::String(menu)) = attr.args.get(0) {
+                    hat_block.fields.insert(
+                        "WHENGREATERTHANMENU".to_string(),
+                        Field::Generic(vec![json!(menu.to_uppercase()), Value::Null]),
+                    );
+                }
+                if let Some(val_expr) = attr.args.get(1) {
+                    let val_input = compile_expr_input(val_expr, ctx);
+                    hat_block.inputs.insert("VALUE".to_string(), val_input);
                 }
             }
         }
@@ -774,6 +823,24 @@ fn compile_sequence(stmts: &Vec<Stmt>, ctx: &mut CompilerContext) -> Option<Stri
         }
     }
     first_id
+}
+
+fn find_variable_arg(expr: &Expr, ctx: &CompilerContext) -> Option<(String, String)> {
+    let name = match expr {
+        Expr::String(s) => s,
+        Expr::Variable(s) => s,
+        _ => return None,
+    };
+
+    if let Some((id, (real_name, _))) = ctx.variables.iter().find(|(_, (n, _))| n == name) {
+        return Some((real_name.clone(), id.clone()));
+    }
+    if let Some(globals) = ctx.global_variables {
+        if let Some((id, (real_name, _))) = globals.iter().find(|(_, (n, _))| n == name) {
+            return Some((real_name.clone(), id.clone()));
+        }
+    }
+    None
 }
 
 fn find_list_arg(expr: &Expr, ctx: &CompilerContext) -> Option<(String, String)> {
@@ -1236,7 +1303,77 @@ fn map_call(
             inputs.insert("NUM".to_string(), compile_expr_input(&args[0], ctx));
             "operator_mathop"
         }
+        "x_position" => "motion_xposition",
         "y_position" => "motion_yposition",
+        "direction" => "motion_direction",
+        "change_sound_effect_by" => {
+            if let Expr::String(effect) = &args[0] {
+                 fields.insert(
+                    "EFFECT".to_string(),
+                    Field::Generic(vec![json!(effect), Value::Null]),
+                );
+            }
+            inputs.insert("VALUE".to_string(), compile_expr_input(&args[1], ctx));
+            "sound_changeeffectby"
+        }
+        "set_sound_effect_to" => {
+            if let Expr::String(effect) = &args[0] {
+                 fields.insert(
+                    "EFFECT".to_string(),
+                    Field::Generic(vec![json!(effect), Value::Null]),
+                );
+            }
+            inputs.insert("VALUE".to_string(), compile_expr_input(&args[1], ctx));
+            "sound_seteffectto"
+        }
+        "clear_sound_effects" => "sound_cleareffects",
+        "show_variable" => {
+             if let Some((var_name, var_id)) = find_variable_arg(&args[0], ctx) {
+                fields.insert(
+                    "VARIABLE".to_string(),
+                    Field::Generic(vec![json!(var_name), json!(var_id)]),
+                );
+            }
+            "data_showvariable"
+        }
+        "hide_variable" => {
+             if let Some((var_name, var_id)) = find_variable_arg(&args[0], ctx) {
+                fields.insert(
+                    "VARIABLE".to_string(),
+                    Field::Generic(vec![json!(var_name), json!(var_id)]),
+                );
+            }
+            "data_hidevariable"
+        }
+        "show_list" => {
+            if let Some((list_name, list_id)) = find_list_arg(&args[0], ctx) {
+                fields.insert(
+                    "LIST".to_string(),
+                    Field::Generic(vec![json!(list_name), json!(list_id)]),
+                );
+            }
+            "data_showlist"
+        }
+        "hide_list" => {
+            if let Some((list_name, list_id)) = find_list_arg(&args[0], ctx) {
+                fields.insert(
+                    "LIST".to_string(),
+                    Field::Generic(vec![json!(list_name), json!(list_id)]),
+                );
+            }
+            "data_hidelist"
+        }
+        "item_num_of_list" => {
+             if let Some((list_name, list_id)) = find_list_arg(&args[0], ctx) {
+                fields.insert(
+                    "LIST".to_string(),
+                    Field::Generic(vec![json!(list_name), json!(list_id)]),
+                );
+            }
+            inputs.insert("ITEM".to_string(), compile_expr_input(&args[1], ctx));
+            "data_itemnumoflist"
+        }
+
         _ => {
             if let Some(info) = ctx.procedures.get(name).cloned() {
                 for (i, arg) in args.iter().enumerate() {

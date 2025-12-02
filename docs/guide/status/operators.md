@@ -1,22 +1,22 @@
-# Operators Blocks Status
+# Operators Blocks
 
-| Block | Opcode | Status | Notes |
-| :--- | :--- | :---: | :--- |
-| (+) | `operator_add` | ✅ | |
-| (-) | `operator_subtract` | ✅ | |
-| (*) | `operator_multiply` | ✅ | |
-| (/) | `operator_divide` | ✅ | |
-| Pick Random (min) to (max) | `operator_random` | ✅ | |
-| (>) | `operator_gt` | ✅ | |
-| (<) | `operator_lt` | ✅ | |
-| (=) | `operator_equals` | ✅ | |
-| And | `operator_and` | ✅ | |
-| Or | `operator_or` | ✅ | |
-| Not | `operator_not` | ✅ | |
-| Join (str1) (str2) | `operator_join` | ✅ | |
-| Letter (n) of (str) | `operator_letter_of` | ✅ | |
-| Length of (str) | `operator_length` | ✅ | |
-| (str) Contains (substr)? | `operator_contains` | ✅ | |
-| (num1) Mod (num2) | `operator_mod` | ✅ | |
-| Round (num) | `operator_round` | ✅ | |
-| (abs/floor/...) of (num) | `operator_mathop` | ✅ | |
+| Scrust Syntax | Scratch Block | Notes |
+| :--- | :--- | :--- |
+| `a + b` | <pre class="blocks">(a) + (b)</pre> | |
+| `a - b` | <pre class="blocks">(a) - (b)</pre> | |
+| `a * b` | <pre class="blocks">(a) * (b)</pre> | |
+| `a / b` | <pre class="blocks">(a) / (b)</pre> | |
+| `random(min, max)` | <pre class="blocks">pick random (min) to (max)</pre> | |
+| `a > b` | <pre class="blocks">&lt;(a) > (b)&gt;</pre> | |
+| `a < b` | <pre class="blocks">&lt;(a) < (b)&gt;</pre> | |
+| `a == b` | <pre class="blocks">&lt;(a) = (b)&gt;</pre> | |
+| `a && b` | <pre class="blocks">&lt;(a) and (b)&gt;</pre> | |
+| `a \|\| b` | <pre class="blocks">&lt;(a) or (b)&gt;</pre> | |
+| `!(a)` | <pre class="blocks">&lt;not &lt;a&gt;&gt;</pre> | |
+| `join(str1, str2)` | <pre class="blocks">join (str1) (str2)</pre> | |
+| `letter_of(str, n)` | <pre class="blocks">letter (n) of (str)</pre> | |
+| `length_of(str)` | <pre class="blocks">length of (str)</pre> | |
+| `contains(str, substr)` | <pre class="blocks">&lt;(str) contains (substr)?&gt;</pre> | |
+| `a % b` or `mod(a, b)` | <pre class="blocks">(a) mod (b)</pre> | |
+| `round(num)` | <pre class="blocks">round (num)</pre> | |
+| `abs(num)` | <pre class="blocks">([abs v] of (num))</pre> | Also: floor, ceiling, sqrt, sin, cos, tan, asin, acos, atan, ln, log, e^, 10^ |

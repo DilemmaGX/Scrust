@@ -5,6 +5,7 @@
 # Scrust
 /examples/*/dist
 /dist
+/test
 
 # Docs
 /docs/node_modules

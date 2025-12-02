@@ -46,7 +46,7 @@ jump(10);
 ```
 
 <pre class="blocks">
-jump (10)
+jump::custom (10)
 </pre>
 
 ## Parameter Types
@@ -70,6 +70,51 @@ if &lt;is_error&gt; then
     say (msg)
 end
 </pre>
+
+## Screen Refresh (Warp)
+
+By default, procedures run **with screen refresh** (normal speed). This allows you to see animations and movements within the procedure.
+
+You can control this behavior using attributes:
+
+- `#[warp]`: Runs the procedure **without screen refresh** (Turbo Mode/Atomic). Useful for fast calculations or drawing.
+- `#[nowarp]`: Runs the procedure **with screen refresh** (Default). Useful if you want to be explicit.
+
+```rust
+// Runs instantly (without screen refresh)
+#[warp]
+proc calculate_pi() {
+    // ... complex math ...
+}
+
+// Runs normally (with screen refresh) - Default behavior
+#[nowarp]
+proc animate_movement() {
+    repeat(10) {
+        move_steps(10);
+        wait(0.1);
+    }
+}
+```
+
+<div class="comparison">
+<div>
+<h4>#[warp]</h4>
+<pre class="blocks">
+define calculate_pi
+...
+</pre>
+<p><i>(Run without screen refresh checked)</i></p>
+</div>
+<div>
+<h4>Default / #[nowarp]</h4>
+<pre class="blocks">
+define animate_movement
+...
+</pre>
+<p><i>(Run without screen refresh unchecked)</i></p>
+</div>
+</div>
 
 <style>
 .comparison {

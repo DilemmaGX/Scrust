@@ -5,6 +5,9 @@ hero:
   name: "Scrust"
   text: "A Rust-like language for Scratch"
   tagline: "Write clean code, compile to blocks."
+  image:
+    src: /assets/logo.svg
+    alt: Scrust Logo
   actions:
     - theme: brand
       text: Get Started
@@ -15,7 +18,7 @@ hero:
 
 features:
   - title: ⚠️ Alpha Version
-    details: Scrust is in early alpha (v0.1.0). Features and syntax are subject to change. Use with caution!
+    details: Scrust is in early alpha (v0.1.1). Features and syntax are subject to change. Use with caution!
   - title: Rust Syntax
     details: Familiar syntax for Rust developers, type-safe and structured.
   - title: Compiles to SB3
@@ -25,5 +28,5 @@ features:
 ---
 
 <div style="text-align: center; margin-top: 2rem; padding: 1rem; background-color: rgba(255, 200, 0, 0.1); border-radius: 8px; border: 1px solid rgba(255, 200, 0, 0.3);">
-  <strong>Note:</strong> This documentation applies to Scrust v0.1.0 (Alpha).
+  <strong>Note:</strong> This documentation applies to Scrust v0.1.1 (Alpha).
 </div>

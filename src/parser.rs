@@ -303,6 +303,7 @@ fn item_var_decl(input: &str) -> IResult<&str, Item> {
 }
 
 fn item_procedure(input: &str) -> IResult<&str, Item> {
+    let (input, attributes) = many0(ws(attribute))(input)?;
     let (input, _) = ws(tag("proc"))(input)?;
     let (input, name) = ws(identifier)(input)?;
     let (input, params) = delimited(
@@ -315,7 +316,7 @@ fn item_procedure(input: &str) -> IResult<&str, Item> {
     )(input)?;
     let (input, body) = ws(block)(input)?;
 
-    // Check for attributes (currently only parsing, maybe add later if needed)
+    let is_warp = attributes.iter().any(|a| a.name == "warp") && !attributes.iter().any(|a| a.name == "nowarp");
 
     Ok((
         input,
@@ -326,7 +327,7 @@ fn item_procedure(input: &str) -> IResult<&str, Item> {
                 .map(|(n, t)| Param { name: n, ty: t })
                 .collect(),
             body,
-            is_warp: false, // Default false, user can add #[warp] later if we support attributes on proc
+            is_warp,
         }),
     ))
 }
@@ -362,7 +363,7 @@ fn item_function(input: &str) -> IResult<&str, Item> {
     )(input)?;
     let (input, body) = ws(block)(input)?;
 
-    let is_warp = attributes.iter().any(|a| a.name == "warp");
+    let is_warp = attributes.iter().any(|a| a.name == "warp") && !attributes.iter().any(|a| a.name == "nowarp");
 
     Ok((
         input,

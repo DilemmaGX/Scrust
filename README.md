@@ -1,6 +1,6 @@
-# Scrust
+![Scrust](assets/logo-banner.svg)
 
-**Version: 0.1.0 (Alpha)**
+**Version: 0.1.1 (Alpha)**
 
 [![Docs](https://img.shields.io/badge/docs-vitepress-blue)](https://dilemmagx.github.io/Scrust/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)

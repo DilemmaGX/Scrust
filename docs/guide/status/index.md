@@ -1,11 +1,11 @@
-# Scratch Block Implementation Status
+# Block List
 
-This section tracks the implementation status of Scratch blocks in Scrust.
+This section provides a comprehensive list of supported Scratch blocks in Scrust, along with their syntax and notes.
 
 **Legend:**
-- ✅ **Implemented**: Supported and working.
-- 🚧 **Partial**: Partially implemented or has known limitations.
-- ❌ **Not Implemented**: Not yet supported.
+- **Scrust Syntax**: How to write the block in Scrust code.
+- **Scratch Block**: The corresponding block in Scratch.
+- **Notes**: Additional information, limitations, or "❌ Not implemented".
 
 ## Categories
 

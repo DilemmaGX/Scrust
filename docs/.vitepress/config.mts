@@ -8,6 +8,7 @@ export default defineConfig({
     ['link', { rel: 'icon', href: '/favicon.ico' }]
   ],
   themeConfig: {
+    logo: '/assets/logo.svg',
     nav: [
       { text: "Home", link: "/" },
       { text: "Guide", link: "/guide/getting-started" },
@@ -36,7 +37,7 @@ export default defineConfig({
         ],
       },
       {
-        text: "Block Status",
+        text: "Block List",
         collapsed: true,
         items: [
           { text: "Overview", link: "/guide/status/" },

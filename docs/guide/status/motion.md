@@ -1,22 +1,19 @@
-# Motion Blocks Status
+# Motion Blocks
 
-| Block | Opcode | Status | Notes |
-| :--- | :--- | :---: | :--- |
-| Move (steps) Steps | `motion_movesteps` | ✅ | |
-| Turn Right (degrees) | `motion_turnright` | ✅ | |
-| Turn Left (degrees) | `motion_turnleft` | ✅ | |
-| Go To (random/mouse) | `motion_goto` | ❌ | Needs random/mouse menu support |
-| Go To X: () Y: () | `motion_gotoxy` | ✅ | |
-| Glide (secs) to (random/mouse) | `motion_glideto` | ❌ | |
-| Glide (secs) to X: () Y: () | `motion_glidesecstoxy` | ✅ | |
-| Point in Direction (dir) | `motion_pointindirection` | ✅ | |
-| Point Towards (mouse/sprite) | `motion_pointtowards` | ❌ | |
-| Change X By (dx) | `motion_changexby` | ✅ | |
-| Set X To (x) | `motion_setx` | ✅ | |
-| Change Y By (dy) | `motion_changeyby` | ✅ | |
-| Set Y To (y) | `motion_sety` | ✅ | |
-| If on Edge, Bounce | `motion_ifonedgebounce` | ✅ | |
-| Set Rotation Style | `motion_setrotationstyle` | ✅ | |
-| X Position | `motion_xposition` | ❌ | `motion_yposition` is implemented, this seems missing in map_call |
-| Y Position | `motion_yposition` | ✅ | |
-| Direction | `motion_direction` | ❌ | |
+| Scrust Syntax | Scratch Block | Notes |
+| :--- | :--- | :--- |
+| `move_steps(steps)` | <pre class="blocks">move (steps) steps</pre> | |
+| `turn_right(degrees)` | <pre class="blocks">turn right (degrees) degrees</pre> | |
+| `turn_left(degrees)` | <pre class="blocks">turn left (degrees) degrees</pre> | |
+| `go_to(x, y)` | <pre class="blocks">go to x: (x) y: (y)</pre> | Random/Mouse not supported yet |
+| `glide(secs, x, y)` | <pre class="blocks">glide (secs) secs to x: (x) y: (y)</pre> | |
+| `point_in_direction(dir)` | <pre class="blocks">point in direction (dir)</pre> | |
+| `change_x_by(dx)` | <pre class="blocks">change x by (dx)</pre> | |
+| `set_x_to(x)` | <pre class="blocks">set x to (x)</pre> | |
+| `change_y_by(dy)` | <pre class="blocks">change y by (dy)</pre> | |
+| `set_y_to(y)` | <pre class="blocks">set y to (y)</pre> | |
+| `if_on_edge_bounce()` | <pre class="blocks">if on edge, bounce</pre> | |
+| `set_rotation_style("style")` | <pre class="blocks">set rotation style [style v]</pre> | Options: "left-right", "don't rotate", "all around" |
+| `x_position()` | <pre class="blocks">x position</pre> | |
+| `y_position()` | <pre class="blocks">y position</pre> | |
+| `direction()` | <pre class="blocks">direction</pre> | |

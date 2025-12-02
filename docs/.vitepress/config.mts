@@ -3,6 +3,7 @@ import { defineConfig } from "vitepress";
 export default defineConfig({
   title: "Scrust",
   description: "A Rust-like language that compiles to Scratch",
+  base: "/Scrust/",
   head: [
     ['link', { rel: 'icon', href: '/favicon.ico' }]
   ],

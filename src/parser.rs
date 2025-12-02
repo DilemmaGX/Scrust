@@ -316,7 +316,8 @@ fn item_procedure(input: &str) -> IResult<&str, Item> {
     )(input)?;
     let (input, body) = ws(block)(input)?;
 
-    let is_warp = attributes.iter().any(|a| a.name == "warp") && !attributes.iter().any(|a| a.name == "nowarp");
+    let is_warp = attributes.iter().any(|a| a.name == "warp")
+        && !attributes.iter().any(|a| a.name == "nowarp");
 
     Ok((
         input,
@@ -363,7 +364,8 @@ fn item_function(input: &str) -> IResult<&str, Item> {
     )(input)?;
     let (input, body) = ws(block)(input)?;
 
-    let is_warp = attributes.iter().any(|a| a.name == "warp") && !attributes.iter().any(|a| a.name == "nowarp");
+    let is_warp = attributes.iter().any(|a| a.name == "warp")
+        && !attributes.iter().any(|a| a.name == "nowarp");
 
     Ok((
         input,

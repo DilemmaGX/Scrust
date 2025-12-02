@@ -3,7 +3,6 @@ pub struct Program {
     pub items: Vec<Item>,
 }
 
-
 #[derive(Debug, Clone)]
 pub enum Item {
     Variable(VariableDecl),

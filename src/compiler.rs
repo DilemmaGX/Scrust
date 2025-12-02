@@ -1001,7 +1001,7 @@ fn map_call(
         }
         "if_on_edge_bounce" => "motion_ifonedgebounce",
         "set_rotation_style" => {
-             if let Expr::String(style) = &args[0] {
+            if let Expr::String(style) = &args[0] {
                 fields.insert(
                     "STYLE".to_string(),
                     Field::Generic(vec![json!(style), Value::Null]),
@@ -1047,7 +1047,7 @@ fn map_call(
         }
         "change_effect_by" => {
             // args[0] is effect name, args[1] is value
-             if let Expr::String(effect) = &args[0] {
+            if let Expr::String(effect) = &args[0] {
                 fields.insert(
                     "EFFECT".to_string(),
                     Field::Generic(vec![json!(effect), Value::Null]),
@@ -1058,7 +1058,7 @@ fn map_call(
         }
         "set_effect_to" => {
             // args[0] is effect name, args[1] is value
-             if let Expr::String(effect) = &args[0] {
+            if let Expr::String(effect) = &args[0] {
                 fields.insert(
                     "EFFECT".to_string(),
                     Field::Generic(vec![json!(effect), Value::Null]),
@@ -1071,38 +1071,62 @@ fn map_call(
         "show" => "looks_show",
         "hide" => "looks_hide",
         "go_to_front_layer" => {
-            fields.insert("FRONT_BACK".to_string(), Field::Generic(vec![json!("front"), Value::Null]));
+            fields.insert(
+                "FRONT_BACK".to_string(),
+                Field::Generic(vec![json!("front"), Value::Null]),
+            );
             "looks_gotofrontback"
         }
         "go_back_layer" => {
-            fields.insert("FRONT_BACK".to_string(), Field::Generic(vec![json!("back"), Value::Null]));
+            fields.insert(
+                "FRONT_BACK".to_string(),
+                Field::Generic(vec![json!("back"), Value::Null]),
+            );
             "looks_gotofrontback"
         }
         "go_forward_layers" => {
-            fields.insert("FORWARD_BACKWARD".to_string(), Field::Generic(vec![json!("forward"), Value::Null]));
+            fields.insert(
+                "FORWARD_BACKWARD".to_string(),
+                Field::Generic(vec![json!("forward"), Value::Null]),
+            );
             inputs.insert("NUM".to_string(), compile_expr_input(&args[0], ctx));
             "looks_goforwardbackwardlayers"
         }
         "go_backward_layers" => {
-            fields.insert("FORWARD_BACKWARD".to_string(), Field::Generic(vec![json!("backward"), Value::Null]));
+            fields.insert(
+                "FORWARD_BACKWARD".to_string(),
+                Field::Generic(vec![json!("backward"), Value::Null]),
+            );
             inputs.insert("NUM".to_string(), compile_expr_input(&args[0], ctx));
             "looks_goforwardbackwardlayers"
         }
         "size" => "looks_size",
         "costume_number" => {
-            fields.insert("NUMBER_NAME".to_string(), Field::Generic(vec![json!("number"), Value::Null]));
+            fields.insert(
+                "NUMBER_NAME".to_string(),
+                Field::Generic(vec![json!("number"), Value::Null]),
+            );
             "looks_costumenumbername"
         }
         "costume_name" => {
-            fields.insert("NUMBER_NAME".to_string(), Field::Generic(vec![json!("name"), Value::Null]));
+            fields.insert(
+                "NUMBER_NAME".to_string(),
+                Field::Generic(vec![json!("name"), Value::Null]),
+            );
             "looks_costumenumbername"
         }
         "backdrop_number" => {
-            fields.insert("NUMBER_NAME".to_string(), Field::Generic(vec![json!("number"), Value::Null]));
+            fields.insert(
+                "NUMBER_NAME".to_string(),
+                Field::Generic(vec![json!("number"), Value::Null]),
+            );
             "looks_backdropnumbername"
         }
         "backdrop_name" => {
-            fields.insert("NUMBER_NAME".to_string(), Field::Generic(vec![json!("name"), Value::Null]));
+            fields.insert(
+                "NUMBER_NAME".to_string(),
+                Field::Generic(vec![json!("name"), Value::Null]),
+            );
             "looks_backdropnumbername"
         }
         "start_sound" => {
@@ -1124,11 +1148,17 @@ fn map_call(
         }
         "volume" => "sound_volume",
         "broadcast" => {
-            inputs.insert("BROADCAST_INPUT".to_string(), compile_expr_input(&args[0], ctx));
+            inputs.insert(
+                "BROADCAST_INPUT".to_string(),
+                compile_expr_input(&args[0], ctx),
+            );
             "event_broadcast"
         }
         "broadcast_and_wait" => {
-            inputs.insert("BROADCAST_INPUT".to_string(), compile_expr_input(&args[0], ctx));
+            inputs.insert(
+                "BROADCAST_INPUT".to_string(),
+                compile_expr_input(&args[0], ctx),
+            );
             "event_broadcastandwait"
         }
         "create_clone_of" => {
@@ -1157,11 +1187,11 @@ fn map_call(
             "control_wait"
         }
         "wait_until" => {
-             inputs.insert("CONDITION".to_string(), compile_expr_input(&args[0], ctx));
-             "control_wait_until"
+            inputs.insert("CONDITION".to_string(), compile_expr_input(&args[0], ctx));
+            "control_wait_until"
         }
         "stop" => {
-             if let Expr::String(opt) = &args[0] {
+            if let Expr::String(opt) = &args[0] {
                 fields.insert(
                     "STOP_OPTION".to_string(),
                     Field::Generic(vec![json!(opt), Value::Null]),
@@ -1186,12 +1216,15 @@ fn map_call(
             "sensing_coloristouchingcolor"
         }
         "distance_to" => {
-             inputs.insert("DISTANCETOMENU".to_string(), compile_expr_input(&args[0], ctx));
-             "sensing_distanceto"
+            inputs.insert(
+                "DISTANCETOMENU".to_string(),
+                compile_expr_input(&args[0], ctx),
+            );
+            "sensing_distanceto"
         }
         "ask_and_wait" => {
-             inputs.insert("QUESTION".to_string(), compile_expr_input(&args[0], ctx));
-             "sensing_askandwait"
+            inputs.insert("QUESTION".to_string(), compile_expr_input(&args[0], ctx));
+            "sensing_askandwait"
         }
         "answer" => "sensing_answer",
         "key_pressed" => {
@@ -1202,7 +1235,7 @@ fn map_call(
         "mouse_x" => "sensing_mousex",
         "mouse_y" => "sensing_mousey",
         "set_drag_mode" => {
-             if let Expr::String(mode) = &args[0] {
+            if let Expr::String(mode) = &args[0] {
                 fields.insert(
                     "DRAG_MODE".to_string(),
                     Field::Generic(vec![json!(mode), Value::Null]),
@@ -1214,42 +1247,63 @@ fn map_call(
         "timer" => "sensing_timer",
         "reset_timer" => "sensing_resettimer",
         "of" => {
-             // property, object
-             if let Expr::String(prop) = &args[0] {
+            // property, object
+            if let Expr::String(prop) = &args[0] {
                 fields.insert(
                     "PROPERTY".to_string(),
                     Field::Generic(vec![json!(prop), Value::Null]),
                 );
-             }
-             inputs.insert("OBJECT".to_string(), compile_expr_input(&args[1], ctx));
-             "sensing_of"
+            }
+            inputs.insert("OBJECT".to_string(), compile_expr_input(&args[1], ctx));
+            "sensing_of"
         }
         "current_year" => {
-            fields.insert("CURRENTMENU".to_string(), Field::Generic(vec![json!("YEAR"), Value::Null]));
+            fields.insert(
+                "CURRENTMENU".to_string(),
+                Field::Generic(vec![json!("YEAR"), Value::Null]),
+            );
             "sensing_current"
         }
         "current_month" => {
-            fields.insert("CURRENTMENU".to_string(), Field::Generic(vec![json!("MONTH"), Value::Null]));
+            fields.insert(
+                "CURRENTMENU".to_string(),
+                Field::Generic(vec![json!("MONTH"), Value::Null]),
+            );
             "sensing_current"
         }
         "current_date" => {
-            fields.insert("CURRENTMENU".to_string(), Field::Generic(vec![json!("DATE"), Value::Null]));
+            fields.insert(
+                "CURRENTMENU".to_string(),
+                Field::Generic(vec![json!("DATE"), Value::Null]),
+            );
             "sensing_current"
         }
         "current_day_of_week" => {
-            fields.insert("CURRENTMENU".to_string(), Field::Generic(vec![json!("DAYOFWEEK"), Value::Null]));
+            fields.insert(
+                "CURRENTMENU".to_string(),
+                Field::Generic(vec![json!("DAYOFWEEK"), Value::Null]),
+            );
             "sensing_current"
         }
         "current_hour" => {
-            fields.insert("CURRENTMENU".to_string(), Field::Generic(vec![json!("HOUR"), Value::Null]));
+            fields.insert(
+                "CURRENTMENU".to_string(),
+                Field::Generic(vec![json!("HOUR"), Value::Null]),
+            );
             "sensing_current"
         }
         "current_minute" => {
-            fields.insert("CURRENTMENU".to_string(), Field::Generic(vec![json!("MINUTE"), Value::Null]));
+            fields.insert(
+                "CURRENTMENU".to_string(),
+                Field::Generic(vec![json!("MINUTE"), Value::Null]),
+            );
             "sensing_current"
         }
         "current_second" => {
-            fields.insert("CURRENTMENU".to_string(), Field::Generic(vec![json!("SECOND"), Value::Null]));
+            fields.insert(
+                "CURRENTMENU".to_string(),
+                Field::Generic(vec![json!("SECOND"), Value::Null]),
+            );
             "sensing_current"
         }
         "days_since_2000" => "sensing_dayssince2000",
@@ -1287,8 +1341,9 @@ fn map_call(
             inputs.insert("NUM".to_string(), compile_expr_input(&args[0], ctx));
             "operator_round"
         }
-        "abs" | "floor" | "sqrt" | "sin" | "cos" | "tan" | "asin" | "acos" | "atan" | "ln" | "log" | "e^" | "10^" => {
-             fields.insert(
+        "abs" | "floor" | "sqrt" | "sin" | "cos" | "tan" | "asin" | "acos" | "atan" | "ln"
+        | "log" | "e^" | "10^" => {
+            fields.insert(
                 "OPERATOR".to_string(),
                 Field::Generic(vec![json!(name), Value::Null]),
             );
@@ -1296,7 +1351,7 @@ fn map_call(
             "operator_mathop"
         }
         "ceil" => {
-             fields.insert(
+            fields.insert(
                 "OPERATOR".to_string(),
                 Field::Generic(vec![json!("ceiling"), Value::Null]),
             );
@@ -1308,7 +1363,7 @@ fn map_call(
         "direction" => "motion_direction",
         "change_sound_effect_by" => {
             if let Expr::String(effect) = &args[0] {
-                 fields.insert(
+                fields.insert(
                     "EFFECT".to_string(),
                     Field::Generic(vec![json!(effect), Value::Null]),
                 );
@@ -1318,7 +1373,7 @@ fn map_call(
         }
         "set_sound_effect_to" => {
             if let Expr::String(effect) = &args[0] {
-                 fields.insert(
+                fields.insert(
                     "EFFECT".to_string(),
                     Field::Generic(vec![json!(effect), Value::Null]),
                 );
@@ -1328,7 +1383,7 @@ fn map_call(
         }
         "clear_sound_effects" => "sound_cleareffects",
         "show_variable" => {
-             if let Some((var_name, var_id)) = find_variable_arg(&args[0], ctx) {
+            if let Some((var_name, var_id)) = find_variable_arg(&args[0], ctx) {
                 fields.insert(
                     "VARIABLE".to_string(),
                     Field::Generic(vec![json!(var_name), json!(var_id)]),
@@ -1337,7 +1392,7 @@ fn map_call(
             "data_showvariable"
         }
         "hide_variable" => {
-             if let Some((var_name, var_id)) = find_variable_arg(&args[0], ctx) {
+            if let Some((var_name, var_id)) = find_variable_arg(&args[0], ctx) {
                 fields.insert(
                     "VARIABLE".to_string(),
                     Field::Generic(vec![json!(var_name), json!(var_id)]),
@@ -1364,7 +1419,7 @@ fn map_call(
             "data_hidelist"
         }
         "item_num_of_list" => {
-             if let Some((list_name, list_id)) = find_list_arg(&args[0], ctx) {
+            if let Some((list_name, list_id)) = find_list_arg(&args[0], ctx) {
                 fields.insert(
                     "LIST".to_string(),
                     Field::Generic(vec![json!(list_name), json!(list_id)]),

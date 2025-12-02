@@ -1,19 +1,19 @@
 mod ast;
+mod checker;
+mod compiler;
 mod config;
 mod parser;
 mod sb3;
-mod compiler;
-mod checker;
 
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
+use colored::*;
 use config::ScrustConfig;
+use nom::error::Error;
 use std::fs;
+use std::io::Write;
 use std::path::PathBuf;
 use zip::write::FileOptions;
-use std::io::Write;
-use colored::*;
-use nom::error::Error;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -36,7 +36,7 @@ enum Commands {
     },
     /// Check the project for errors
     Check {
-         /// Path to Scrust.toml
+        /// Path to Scrust.toml
         #[arg(short, long, default_value = "Scrust.toml")]
         config: PathBuf,
     },
@@ -57,20 +57,34 @@ fn main() -> Result<()> {
     }
 }
 
-fn validate_program(program: &ast::Program, is_stage: bool, project_root: &std::path::Path) -> Result<()> {
+fn validate_program(
+    program: &ast::Program,
+    is_stage: bool,
+    project_root: &std::path::Path,
+) -> Result<()> {
     for item in &program.items {
         match item {
             ast::Item::Variable(decl) => {
                 if is_stage && decl.visibility == ast::Visibility::Private {
-                    return Err(anyhow::anyhow!("{}", format!("Stage variables cannot be private: {}", decl.name).red()));
+                    return Err(anyhow::anyhow!(
+                        "{}",
+                        format!("Stage variables cannot be private: {}", decl.name).red()
+                    ));
                 }
-            },
+            }
             ast::Item::Costume(decl) | ast::Item::Sound(decl) => {
                 let path = project_root.join(&decl.path);
                 if !path.exists() {
-                    return Err(anyhow::anyhow!("{}", format!("Asset not found: {:?} (referenced as '{}')", path, decl.name).red()));
+                    return Err(anyhow::anyhow!(
+                        "{}",
+                        format!(
+                            "Asset not found: {:?} (referenced as '{}')",
+                            path, decl.name
+                        )
+                        .red()
+                    ));
                 }
-            },
+            }
             _ => {}
         }
     }
@@ -80,19 +94,30 @@ fn validate_program(program: &ast::Program, is_stage: bool, project_root: &std::
 fn format_parse_error(e: nom::Err<Error<&str>>, src: &str) -> String {
     match e {
         nom::Err::Error(e) | nom::Err::Failure(e) => {
-             let offset = e.input.as_ptr() as usize - src.as_ptr() as usize;
-             let line_num = src[..offset].lines().count().max(1);
-             let line_content = src.lines().nth(line_num - 1).unwrap_or("");
-             format!("Parse error at line {}:\n  {}\n  {}", line_num, line_content.trim(), "^".red().bold())
-        },
+            let offset = e.input.as_ptr() as usize - src.as_ptr() as usize;
+            let line_num = src[..offset].lines().count().max(1);
+            let line_content = src.lines().nth(line_num - 1).unwrap_or("");
+            format!(
+                "Parse error at line {}:\n  {}\n  {}",
+                line_num,
+                line_content.trim(),
+                "^".red().bold()
+            )
+        }
         nom::Err::Incomplete(_) => "Parse incomplete".red().to_string(),
     }
 }
 
 fn check(config_path: PathBuf) -> Result<()> {
-    println!("{}", format!("Checking project at {:?}", config_path).blue().bold());
+    println!(
+        "{}",
+        format!("Checking project at {:?}", config_path)
+            .blue()
+            .bold()
+    );
     let config_str = fs::read_to_string(&config_path).context("Failed to read config file")?;
-    let config: ScrustConfig = toml::from_str(&config_str).context("Failed to parse config file")?;
+    let config: ScrustConfig =
+        toml::from_str(&config_str).context("Failed to parse config file")?;
     let config_dir = config_path.parent().unwrap();
 
     let stage_path = if config.stage.path.is_absolute() {
@@ -100,9 +125,11 @@ fn check(config_path: PathBuf) -> Result<()> {
     } else {
         config_dir.join(&config.stage.path)
     };
-    
-    let stage_src = fs::read_to_string(&stage_path).context(format!("Failed to read stage source {:?}", stage_path))?;
-    let (_, stage_ast) = parser::parse_program(&stage_src).map_err(|e| anyhow::anyhow!("{}", format_parse_error(e, &stage_src)))?;
+
+    let stage_src = fs::read_to_string(&stage_path)
+        .context(format!("Failed to read stage source {:?}", stage_path))?;
+    let (_, stage_ast) = parser::parse_program(&stage_src)
+        .map_err(|e| anyhow::anyhow!("{}", format_parse_error(e, &stage_src)))?;
     validate_program(&stage_ast, true, config_dir)?;
     checker::check_program(&stage_ast)?;
 
@@ -114,9 +141,16 @@ fn check(config_path: PathBuf) -> Result<()> {
             } else {
                 config_dir.join(&sprite.path)
             };
-            
-            let src = fs::read_to_string(&sprite_path).context(format!("Failed to read sprite source {:?}", sprite_path))?;
-            let (_, ast) = parser::parse_program(&src).map_err(|e| anyhow::anyhow!("In sprite '{}': {}", sprite.name.as_deref().unwrap_or("unknown"), format_parse_error(e, &src)))?;
+
+            let src = fs::read_to_string(&sprite_path)
+                .context(format!("Failed to read sprite source {:?}", sprite_path))?;
+            let (_, ast) = parser::parse_program(&src).map_err(|e| {
+                anyhow::anyhow!(
+                    "In sprite '{}': {}",
+                    sprite.name.as_deref().unwrap_or("unknown"),
+                    format_parse_error(e, &src)
+                )
+            })?;
             validate_program(&ast, false, config_dir)?;
             checker::check_program(&ast)?;
         }
@@ -143,11 +177,19 @@ fn build(config_path: PathBuf, debug: bool) -> Result<()> {
     } else {
         config_dir.join(&config.stage.path)
     };
-    
+
     let stage_src = fs::read_to_string(&stage_path)?;
-    let (rest, mut stage_ast) = parser::parse_program(&stage_src).map_err(|e| anyhow::anyhow!("{}", format_parse_error(e, &stage_src)))?;
+    let (rest, mut stage_ast) = parser::parse_program(&stage_src)
+        .map_err(|e| anyhow::anyhow!("{}", format_parse_error(e, &stage_src)))?;
     if !rest.trim().is_empty() {
-        println!("{}", format!("Warning: Stage parsing stopped early. Remaining: {:.50}...", rest).yellow());
+        println!(
+            "{}",
+            format!(
+                "Warning: Stage parsing stopped early. Remaining: {:.50}...",
+                rest
+            )
+            .yellow()
+        );
     }
 
     // Pre-load sprites to extract public variables
@@ -160,9 +202,23 @@ fn build(config_path: PathBuf, debug: bool) -> Result<()> {
                 config_dir.join(&sprite.path)
             };
             let src = fs::read_to_string(&sprite_path)?;
-            let (rest, ast) = parser::parse_program(&src).map_err(|e| anyhow::anyhow!("In sprite '{}': {}", sprite.name.as_deref().unwrap_or("unknown"), format_parse_error(e, &src)))?;
+            let (rest, ast) = parser::parse_program(&src).map_err(|e| {
+                anyhow::anyhow!(
+                    "In sprite '{}': {}",
+                    sprite.name.as_deref().unwrap_or("unknown"),
+                    format_parse_error(e, &src)
+                )
+            })?;
             if !rest.trim().is_empty() {
-                println!("{}", format!("Warning: Sprite {} parsing stopped early. Remaining: {:.50}...", sprite.name.as_deref().unwrap_or("unknown"), rest).yellow());
+                println!(
+                    "{}",
+                    format!(
+                        "Warning: Sprite {} parsing stopped early. Remaining: {:.50}...",
+                        sprite.name.as_deref().unwrap_or("unknown"),
+                        rest
+                    )
+                    .yellow()
+                );
             }
 
             // Extract public variables and add to stage_ast
@@ -171,7 +227,11 @@ fn build(config_path: PathBuf, debug: bool) -> Result<()> {
                     if decl.visibility == ast::Visibility::Public {
                         // Check if already exists in stage
                         let exists = stage_ast.items.iter().any(|i| {
-                             if let ast::Item::Variable(v) = i { v.name == decl.name } else { false }
+                            if let ast::Item::Variable(v) = i {
+                                v.name == decl.name
+                            } else {
+                                false
+                            }
                         });
                         if !exists {
                             stage_ast.items.push(ast::Item::Variable(decl.clone()));
@@ -183,20 +243,27 @@ fn build(config_path: PathBuf, debug: bool) -> Result<()> {
         }
     }
 
-    let (stage_target, stage_assets) = compiler::compile_target(&stage_ast, true, None, None, config_dir);
-    
+    let (stage_target, stage_assets) =
+        compiler::compile_target(&stage_ast, true, None, None, config_dir);
+
     for (path, filename) in stage_assets {
         assets_to_pack.push((path, filename));
     }
-    
+
     let global_vars = stage_target.variables.clone();
     let global_lists = stage_target.lists.clone();
     targets.push(stage_target);
 
     for (sprite, ast) in sprite_data {
-        let (mut target, sprite_assets) = compiler::compile_target(&ast, false, Some(&global_vars), Some(&global_lists), config_dir);
+        let (mut target, sprite_assets) = compiler::compile_target(
+            &ast,
+            false,
+            Some(&global_vars),
+            Some(&global_lists),
+            config_dir,
+        );
         target.name = sprite.name.clone().unwrap_or("Sprite".to_string());
-        
+
         for (path, filename) in sprite_assets {
             assets_to_pack.push((path, filename));
         }
@@ -228,7 +295,14 @@ fn build(config_path: PathBuf, debug: bool) -> Result<()> {
         let debug_path = output_path.with_file_name("project.json");
         let debug_file = fs::File::create(debug_path)?;
         serde_json::to_writer_pretty(debug_file, &project)?;
-        println!("{}", format!("Debug output written to {:?}", output_path.with_file_name("project.json")).dimmed());
+        println!(
+            "{}",
+            format!(
+                "Debug output written to {:?}",
+                output_path.with_file_name("project.json")
+            )
+            .dimmed()
+        );
     }
 
     let file = fs::File::create(&output_path)?;
@@ -239,14 +313,17 @@ fn build(config_path: PathBuf, debug: bool) -> Result<()> {
     serde_json::to_writer(&mut zip, &project)?;
 
     for (path, filename) in assets_to_pack {
-         let content = fs::read(&path).context(format!("Failed to read asset {:?}", path))?;
-         zip.start_file(filename, options)?;
-         zip.write_all(&content)?;
+        let content = fs::read(&path).context(format!("Failed to read asset {:?}", path))?;
+        zip.start_file(filename, options)?;
+        zip.write_all(&content)?;
     }
 
     zip.finish()?;
 
-    println!("{}", format!("Build complete: {:?}", output_path).green().bold());
+    println!(
+        "{}",
+        format!("Build complete: {:?}", output_path).green().bold()
+    );
     Ok(())
 }
 
@@ -256,14 +333,18 @@ fn create(name: String) -> Result<()> {
         return Err(anyhow::anyhow!("Directory '{}' already exists", name));
     }
 
-    println!("{}", format!("Creating project '{}'...", name).blue().bold());
+    println!(
+        "{}",
+        format!("Creating project '{}'...", name).blue().bold()
+    );
 
     fs::create_dir_all(root.join("src"))?;
     fs::create_dir_all(root.join("assets"))?;
     // dist directory will be created on build
 
     // Scrust.toml
-    let config_content = format!(r#"[project]
+    let config_content = format!(
+        r#"[project]
 name = "{}"
 output = "dist/project.sb3"
 
@@ -273,7 +354,9 @@ path = "src/stage.sr"
 [[sprite]]
 name = "Sprite1"
 path = "src/sprite.sr"
-"#, name);
+"#,
+        name
+    );
     fs::write(root.join("Scrust.toml"), config_content)?;
 
     // src/stage.sr

@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::path::PathBuf;
 
 #[derive(Deserialize, Debug)]
@@ -9,6 +9,7 @@ pub struct ScrustConfig {
 }
 
 #[derive(Deserialize, Debug)]
+#[allow(dead_code)]
 pub struct ProjectConfig {
     pub name: String,
     pub output: PathBuf,

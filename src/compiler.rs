@@ -464,7 +464,7 @@ fn compile_function(func: &Function, ctx: &mut CompilerContext) -> Option<String
     };
 
     if let Some(opcode) = hat_opcode {
-        let mut prev_id = None;
+        let mut prev_id;
 
         // Create Hat Block
         let mut hat_block = NormalBlock {
@@ -518,11 +518,14 @@ fn compile_stmt(
             // Identify shadow blocks before moving inputs
             let mut shadow_ids = Vec::new();
             for (_, input) in &inputs {
-                if let Input::Generic(vals) = input {
-                    if vals.len() >= 2 && vals[0] == json!(1) {
-                        if let Some(shadow_id) = vals[1].as_str() {
-                            shadow_ids.push(shadow_id.to_string());
-                        }
+                // We know input is Input::Generic here based on map_call implementation
+                // but for safety we keep the match, but we can suppress the warning or change logic
+                // Since Input only has one variant, we can direct access or keep as is.
+                // The warning says `if let` is irrefutable.
+                let Input::Generic(vals) = input;
+                if vals.len() >= 2 && vals[0] == json!(1) {
+                    if let Some(shadow_id) = vals[1].as_str() {
+                        shadow_ids.push(shadow_id.to_string());
                     }
                 }
             }

@@ -2,11 +2,11 @@ use crate::ast::*;
 use nom::{
     IResult,
     branch::alt,
-    bytes::complete::{tag, take_while, take_while1},
-    character::complete::{alpha1, alphanumeric1, char, digit1, multispace0, multispace1, none_of},
+    bytes::complete::{tag, take_while},
+    character::complete::{alpha1, alphanumeric1, char, digit1, multispace1},
     combinator::{map, map_res, opt, recognize, value, verify},
     multi::{many0, separated_list0},
-    sequence::{delimited, pair, preceded, separated_pair, terminated, tuple},
+    sequence::{delimited, pair, preceded, tuple},
 };
 
 fn comment<'a, E: nom::error::ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, (), E> {

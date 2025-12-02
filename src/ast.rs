@@ -1,9 +1,8 @@
-use std::collections::HashMap;
-
 #[derive(Debug, Clone)]
 pub struct Program {
     pub items: Vec<Item>,
 }
+
 
 #[derive(Debug, Clone)]
 pub enum Item {
@@ -46,6 +45,7 @@ pub struct AssetDecl {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct Function {
     pub name: String,
     pub attributes: Vec<Attribute>,
@@ -68,6 +68,7 @@ pub struct Param {
 
 #[derive(Debug, Clone)]
 pub enum Stmt {
+    #[allow(dead_code)]
     VarDecl(String, Expr),
     Assign(String, Expr),
     Expr(Expr),
@@ -75,6 +76,7 @@ pub enum Stmt {
     Repeat(Expr, Vec<Stmt>),
     Forever(Vec<Stmt>),
     Until(Expr, Vec<Stmt>),
+    #[allow(dead_code)]
     Return(Option<Expr>),
 }
 
@@ -85,6 +87,7 @@ pub enum Expr {
     Bool(bool),
     Variable(String),
     Call(String, Vec<Expr>),
+    #[allow(dead_code)]
     ProcCall(String, Vec<Expr>),
     BinOp(Box<Expr>, Op, Box<Expr>),
     List(Vec<Expr>),

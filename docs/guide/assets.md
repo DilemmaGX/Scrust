@@ -33,11 +33,11 @@ start_sound("jump");
 
 ## Asset Location
 
-The file paths are relative to the `Scrust.toml` directory (project root). Ensure your `assets` folder is structured correctly.
+The file paths are relative to the `scrust.toml` directory (project root). Ensure your `assets` folder is structured correctly.
 
 ```
 project/
-├── Scrust.toml
+├── scrust.toml
 ├── assets/
 │   ├── player_idle.svg
 │   └── jump.wav

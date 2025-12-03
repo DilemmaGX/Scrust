@@ -25,7 +25,7 @@ This generates a ready-to-use project structure.
 
 ```
 my_first_project/
-├── Scrust.toml         # Configuration
+├── scrust.toml         # Configuration
 ├── assets/             # SVG, PNG, WAV files
 │   ├── sprite.svg
 │   └── stage.svg
@@ -35,7 +35,7 @@ my_first_project/
 └── dist/               # Compiled output
 ```
 
-### Configuration (Scrust.toml)
+### Configuration (scrust.toml)
 
 The `create` command generates this for you, but here is what it looks like:
 

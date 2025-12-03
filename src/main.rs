@@ -26,7 +26,7 @@ enum Commands {
     /// Build the project
     Build {
         /// Path to Scrust.toml
-        #[arg(short, long, default_value = "Scrust.toml")]
+        #[arg(short, long, default_value = "scrust.toml")]
         config: PathBuf,
 
         /// Output project.json for debugging
@@ -251,7 +251,7 @@ fn create(name: String) -> Result<()> {
     fs::create_dir_all(root.join("assets"))?;
     // dist directory will be created on build
 
-    // Scrust.toml
+    // scrust.toml
     let config_content = format!(
         r#"[project]
 name = "{}"
@@ -266,7 +266,7 @@ path = "src/sprite.sr"
 "#,
         name
     );
-    fs::write(root.join("Scrust.toml"), config_content)?;
+    fs::write(root.join("scrust.toml"), config_content)?;
 
     // src/stage.sr
     let stage_content = r#"costume "backdrop1" "assets/stage.svg";

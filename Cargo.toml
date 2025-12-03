@@ -1,5 +1,5 @@
 [package]
-name = "Scrust"
+name = "scrust"
 version = "0.1.2"
 edition = "2024"
 

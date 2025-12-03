@@ -7,7 +7,8 @@
 
 **Scrust** is a compiled language for Scratch 3.0 projects. It brings modern programming features like functions, typed variables, and structured control flow to Scratch, compiling down to `.sb3` files.
 
-> ⚠️ **ALPHA WARNING** ⚠️
+> [!WARNING]
+> **ALPHA STATUS**
 > 
 > This project is currently in **early alpha**. 
 > - The syntax, API, and features are subject to breaking changes at any time.
@@ -47,7 +48,7 @@ Use the `create` command to generate a new project structure:
 cargo run -- create my_project
 ```
 
-This will create a directory `my_project` with a default `Scrust.toml` and source files.
+This will create a directory `my_project` with a default `scrust.toml` and source files.
 
 #### 2. Build the Project
 
@@ -57,7 +58,8 @@ Navigate to your project directory and build it:
 cd my_project
 cargo run --manifest-path ../Cargo.toml -- build
 ```
-*(Note: If you installed Scrust globally or added it to path, you would just run `scrust build`)*
+> [!TIP]
+> If you installed Scrust globally or added it to your PATH, you can simply run `scrust build`.
 
 The compiled project will be in `dist/project.sb3`. You can load this file into the Scratch editor.
 

@@ -16,12 +16,12 @@ my_project/
 │   └── sprite.sr       # Code for your Sprite
 ├── dist/               # Compiled output (created after build)
 │   └── project.sb3
-└── Scrust.toml         # Project configuration file
+└── scrust.toml         # Project configuration file
 ```
 
-## Scrust.toml
+## scrust.toml
 
-The configuration file `Scrust.toml` defines your project's metadata and maps source files to Scratch targets (Stage and Sprites).
+The configuration file `scrust.toml` defines your project's metadata and maps source files to Scratch targets (Stage and Sprites).
 
 ```toml
 [project]

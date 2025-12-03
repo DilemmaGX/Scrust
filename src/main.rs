@@ -186,7 +186,7 @@ fn build(config_path: PathBuf, debug: bool) -> Result<()> {
         meta: sb3::Meta {
             semver: "3.0.0".to_string(),
             vm: "0.2.0".to_string(),
-            agent: "Scrust 0.1.3".to_string(),
+            agent: "Scrust 0.1.4".to_string(),
         },
     };
 

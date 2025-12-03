@@ -80,6 +80,7 @@ pub enum Stmt {
     Repeat(Expr, Vec<Stmt>, Option<String>),
     Forever(Vec<Stmt>, Option<String>),
     Until(Expr, Vec<Stmt>, Option<String>),
+    Match(Expr, Vec<(Expr, Vec<Stmt>)>, Option<Vec<Stmt>>, Option<String>),
     #[allow(dead_code)]
     Return(Option<Expr>, Option<String>),
     Comment(String),

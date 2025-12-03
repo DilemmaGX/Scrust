@@ -15,6 +15,6 @@ Scrust is designed to feel familiar to Rust developers while mapping 1:1 to Scra
 - [Variables & Lists](./variables) - Managing state with `var` and `list`.
 - [Procedures](./procedures) - Creating custom blocks ("My Blocks").
 - [Events](./events) - Handling flag clicks, key presses, and more.
-- [Control Flow](./control-flow) - Loops (`forever`, `repeat`) and Conditionals (`if/else`).
+- [Control Flow](./control-flow) - Loops (`forever`, `repeat`), Conditionals (`if/else`), and Matching (`match`).
 - [Operators](./operators) - Math, logic, and string manipulation.
 - [Standard Blocks](./blocks) - Motion, Looks, Sound, and Sensing commands.

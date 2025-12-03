@@ -29,6 +29,7 @@ pub struct CompilerContext<'a> {
     pub asset_instructions: Vec<(PathBuf, String)>,
     pub procedures: HashMap<String, ProcedureInfo>,
     pub current_proc_args: Option<HashMap<String, Type>>,
+    pub local_variables: HashMap<String, String>,
 }
 
 impl<'a> CompilerContext<'a> {
@@ -49,6 +50,7 @@ impl<'a> CompilerContext<'a> {
             asset_instructions: Vec::new(),
             procedures: HashMap::new(),
             current_proc_args: None,
+            local_variables: HashMap::new(),
         }
     }
 
@@ -457,6 +459,82 @@ fn compile_procedure(proc: &ProcedureDef, ctx: &mut CompilerContext) -> Option<S
     }
     ctx.current_proc_args = Some(proc_args);
 
+    // Create shadow variables for parameters
+    for param in &proc.params {
+        // Create a unique name for the shadow variable
+        let shadow_name = format!("{}:{}", proc.name, param.name);
+        let var_id = ctx.add_variable(shadow_name.clone(), json!(0));
+
+        // Map the simple parameter name to this variable ID in local scope
+        ctx.local_variables
+            .insert(param.name.clone(), var_id.clone());
+
+        // Initialize the variable with the argument value
+        let opcode = match param.ty {
+            Type::Boolean => "argument_reporter_boolean",
+            _ => "argument_reporter_string_number",
+        };
+
+        let mut fields = HashMap::new();
+        fields.insert(
+            "VALUE".to_string(),
+            Field::Generic(vec![json!(param.name), Value::Null]),
+        );
+
+        let arg_block = NormalBlock {
+            opcode: opcode.to_string(),
+            next: None,
+            parent: None,
+            inputs: HashMap::new(),
+            fields,
+            shadow: false,
+            top_level: false,
+            x: None,
+            y: None,
+            mutation: None,
+            comment: None,
+        };
+        let arg_id = ctx.add_block(arg_block);
+
+        // Create set variable block
+        let mut inputs = HashMap::new();
+        inputs.insert(
+            "VALUE".to_string(),
+            Input::Generic(vec![json!(2), json!(arg_id)]),
+        );
+
+        let mut fields = HashMap::new();
+        fields.insert(
+            "VARIABLE".to_string(),
+            Field::Generic(vec![json!(shadow_name), json!(var_id.clone())]),
+        );
+
+        let set_block = NormalBlock {
+            opcode: "data_setvariableto".to_string(),
+            next: None,
+            parent: prev_id.clone(),
+            inputs: inputs.clone(),
+            fields,
+            shadow: false,
+            top_level: false,
+            x: None,
+            y: None,
+            mutation: None,
+            comment: None,
+        };
+        let set_id = ctx.add_block(set_block);
+        fix_input_parents(ctx, set_id.clone(), &inputs);
+
+        // Link to previous block
+        if let Some(pid) = prev_id {
+            if let Some(Block::Normal(parent_block)) = ctx.blocks.get_mut(&pid) {
+                parent_block.next = Some(set_id.clone());
+            }
+        }
+
+        prev_id = Some(set_id);
+    }
+
     // Compile body
     for stmt in &proc.body {
         prev_id = compile_stmt(stmt, prev_id, ctx);
@@ -464,6 +542,7 @@ fn compile_procedure(proc: &ProcedureDef, ctx: &mut CompilerContext) -> Option<S
 
     // Clear context
     ctx.current_proc_args = None;
+    ctx.local_variables.clear();
 
     Some(def_id)
 }
@@ -619,7 +698,7 @@ fn compile_stmt(
             Some(id)
         }
         Stmt::If(cond, then_block, else_block, comment) => {
-            let cond_input = compile_expr_input(cond, ctx);
+            let cond_input = compile_bool_arg(cond, ctx);
 
             // Compile substacks
             let substack_id = compile_sequence(then_block, ctx);
@@ -752,7 +831,7 @@ fn compile_stmt(
             Some(id)
         }
         Stmt::Until(cond, body, comment) => {
-            let cond_input = compile_expr_input(cond, ctx);
+            let cond_input = compile_bool_arg(cond, ctx);
             let substack_id = compile_sequence(body, ctx);
             let mut inputs = HashMap::new();
             inputs.insert("CONDITION".to_string(), cond_input);
@@ -788,6 +867,84 @@ fn compile_stmt(
                 }
             }
             Some(id)
+        }
+        Stmt::Match(expr, cases, default_case, comment) => {
+            // Compile match as nested if-else
+            // match expr { case1 => block1, case2 => block2, _ => default }
+            // Becomes:
+            // if expr == case1 { block1 } else { if expr == case2 { block2 } else { default } }
+
+            // Recursively build the if-else structure
+            fn build_match_tree(
+                expr: &Expr,
+                cases: &[(Expr, Vec<Stmt>)],
+                default_case: &Option<Vec<Stmt>>,
+            ) -> Stmt {
+                if let Some((case_expr, case_body)) = cases.first() {
+                    let cond = Expr::BinOp(
+                        Box::new(expr.clone()),
+                        Op::Eq,
+                        Box::new(case_expr.clone()),
+                    );
+                    let remaining_cases = &cases[1..];
+                    let else_block = if remaining_cases.is_empty() {
+                        default_case.clone()
+                    } else {
+                        Some(vec![build_match_tree(expr, remaining_cases, default_case)])
+                    };
+                    Stmt::If(cond, case_body.clone(), else_block, None)
+                } else if let Some(def) = default_case {
+                    // Should not be reached if cases is not empty initially,
+                    // but if match has no cases but has default, we just run default.
+                    // However, Stmt::If structure requires a condition.
+                    // If we are here, it means we have no cases left.
+                    // We can't represent "just run this block" as a single Stmt::If.
+                    // But since build_match_tree returns a Stmt, and we need to wrap the default block in something...
+                    // Actually, if we run out of cases, we shouldn't be calling build_match_tree unless we are inside an else block.
+                    // Wait, the top level call might have empty cases.
+                    // If cases are empty, we can't return Stmt::If.
+                    // We might need to handle this logic before calling this function or change return type.
+                    // For now let's assume we only call this when we have at least one case.
+                    // But wait, we need to return a Stmt.
+                    // If we have 0 cases and a default, it's just the default block.
+                    // But Stmt is one statement. A block is Vec<Stmt>.
+                    // We can't easily return a block as a single Stmt without a wrapper.
+                    // Let's assume the parser ensures at least one case or we handle 0 cases specially.
+                    // If 0 cases and default, we could use "if true { default }".
+                    Stmt::If(Expr::Bool(true), def.clone(), None, None)
+                } else {
+                    // No cases, no default. Do nothing.
+                     Stmt::If(Expr::Bool(false), vec![], None, None)
+                }
+            }
+
+            let stmt_tree = if cases.is_empty() {
+                 if let Some(def) = default_case {
+                     // execute default unconditionally
+                     // We can wrap in "if true"
+                     Stmt::If(Expr::Bool(true), def.clone(), None, None)
+                 } else {
+                     // do nothing
+                     Stmt::If(Expr::Bool(false), vec![], None, None)
+                 }
+            } else {
+                build_match_tree(expr, cases, default_case)
+            };
+
+            // Now compile the generated if-tree
+            // We reuse the existing Stmt::If compilation logic by recursively calling compile_stmt
+            // But wait, compile_stmt takes ownership or reference?
+            // compile_stmt takes &Stmt.
+            // We just constructed a new Stmt.
+            
+            // We can pass it to compile_stmt.
+            // Note: comment is applied to the top-level generated If.
+            let mut final_stmt = stmt_tree;
+            if let Stmt::If(c, t, e, _) = final_stmt {
+                 final_stmt = Stmt::If(c, t, e, comment.clone());
+            }
+            
+            compile_stmt(&final_stmt, parent_id, ctx)
         }
         Stmt::VarDecl(name, init, comment) => {
             let val = json!(0); // Placeholder
@@ -832,10 +989,15 @@ fn compile_stmt(
         Stmt::Assign(name, val, comment) => {
             // Find variable ID
             let var_id = ctx
-                .variables
-                .iter()
-                .find(|(_, (vname, _))| vname == name)
-                .map(|(id, _)| id.clone())
+                .local_variables
+                .get(name)
+                .cloned()
+                .or_else(|| {
+                    ctx.variables
+                        .iter()
+                        .find(|(_, (vname, _))| vname == name)
+                        .map(|(id, _)| id.clone())
+                })
                 .or_else(|| {
                     ctx.global_variables.and_then(|globals| {
                         globals
@@ -1410,7 +1572,7 @@ fn map_call(
             "control_wait"
         }
         "wait_until" => {
-            inputs.insert("CONDITION".to_string(), compile_expr_input(&args[0], ctx));
+            inputs.insert("CONDITION".to_string(), compile_bool_arg(&args[0], ctx));
             "control_wait_until"
         }
         "stop" => {
@@ -1836,6 +1998,34 @@ fn compile_bool_arg(expr: &Expr, ctx: &mut CompilerContext) -> Input {
             fix_input_parents(ctx, id.clone(), &inputs);
             Input::Generic(vec![json!(2), json!(id)])
         }
+        Expr::Variable(_) => {
+            // Variables are reporters (round), but boolean inputs need boolean reporters (hexagonal).
+            // We wrap the variable in an equals check: var == "true"
+            let val = compile_expr_input(expr, ctx);
+            let mut inputs = HashMap::new();
+            inputs.insert("OPERAND1".to_string(), val);
+            inputs.insert(
+                "OPERAND2".to_string(),
+                Input::Generic(vec![json!(1), json!([10, "true"])]),
+            );
+
+            let block = NormalBlock {
+                opcode: "operator_equals".to_string(),
+                next: None,
+                parent: None,
+                inputs: inputs.clone(),
+                fields: HashMap::new(),
+                shadow: false,
+                top_level: false,
+                x: None,
+                y: None,
+                mutation: None,
+                comment: None,
+            };
+            let id = ctx.add_block(block);
+            fix_input_parents(ctx, id.clone(), &inputs);
+            Input::Generic(vec![json!(2), json!(id)])
+        }
         _ => compile_expr_input(expr, ctx),
     }
 }
@@ -1880,8 +2070,12 @@ fn compile_expr_input(expr: &Expr, ctx: &mut CompilerContext) -> Input {
         Expr::Variable(name) => {
             // Find variable ID
             let var_id = ctx
-                .variables
-                .iter()
+                .local_variables
+                .get(name)
+                .cloned()
+                .or_else(|| {
+                    ctx.variables
+                        .iter()
                 .find(|(_, (vname, _))| vname == name)
                 .map(|(id, _)| id.clone())
                 .or_else(|| {
@@ -1891,7 +2085,8 @@ fn compile_expr_input(expr: &Expr, ctx: &mut CompilerContext) -> Input {
                             .find(|(_, (vname, _))| vname == name)
                             .map(|(id, _)| id.clone())
                     })
-                });
+                })
+            });
 
             if let Some(vid) = var_id {
                 // [12, Name, ID] - 12 is Variable primitive

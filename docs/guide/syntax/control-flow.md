@@ -100,6 +100,36 @@ else
 end
 </pre>
 
+### Match Statement
+
+The `match` statement allows you to compare a value against multiple patterns. It compiles to nested `if-else` blocks in Scratch.
+
+```rust
+match my_var {
+    "A" => {
+        say("Option A");
+    }
+    "B" => {
+        say("Option B");
+    }
+    _ => {
+        say("Default");
+    }
+}
+```
+
+<pre class="blocks">
+if &lt;(my_var) = [A]&gt; then
+    say [Option A]
+else
+    if &lt;(my_var) = [B]&gt; then
+        say [Option B]
+    else
+        say [Default]
+    end
+end
+</pre>
+
 ## Cloning
 
 Creating and managing clones.

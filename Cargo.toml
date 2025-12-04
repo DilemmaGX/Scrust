@@ -1,6 +1,6 @@
 [package]
 name = "scrust"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 
 [dependencies]
@@ -14,3 +14,4 @@ md5 = "0.7"
 nom = "7.1"
 anyhow = "1.0"
 colored = "3.0.0"
+base64 = "0.22.1"

@@ -1,6 +1,7 @@
 mod ast;
 mod compiler;
 mod config;
+mod extension;
 mod parser;
 mod sb3;
 
@@ -9,6 +10,7 @@ use clap::{Parser, Subcommand};
 use colored::*;
 use config::ScrustConfig;
 use nom::error::Error;
+use std::collections::HashMap;
 use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
@@ -152,8 +154,26 @@ fn build(config_path: PathBuf, debug: bool) -> Result<()> {
         }
     }
 
+    // Load extensions
+    // We assume the extensions folder is in the current working directory (repo root)
+    // or relative to where the compiler is expected to find them.
+    let extensions_dir = PathBuf::from("extensions");
+    let extensions =
+        extension::load_extensions(&extensions_dir, &config.project.extensions, config_dir)?;
+    if !extensions.is_empty() {
+        println!(
+            "{}",
+            format!(
+                "Loaded {} extensions from {:?}",
+                extensions.len(),
+                extensions_dir
+            )
+            .blue()
+        );
+    }
+
     let (stage_target, stage_assets) =
-        compiler::compile_target(&stage_ast, true, None, None, config_dir);
+        compiler::compile_target(&stage_ast, true, None, None, config_dir, &extensions, debug);
 
     for (path, filename) in stage_assets {
         assets_to_pack.push((path, filename));
@@ -170,6 +190,8 @@ fn build(config_path: PathBuf, debug: bool) -> Result<()> {
             Some(&global_vars),
             Some(&global_lists),
             config_dir,
+            &extensions,
+            debug,
         );
         target.name = sprite.name.clone().unwrap_or("Sprite".to_string());
 
@@ -179,14 +201,42 @@ fn build(config_path: PathBuf, debug: bool) -> Result<()> {
         targets.push(target);
     }
 
+    let mut project_extensions = Vec::new();
+    let mut extension_urls = HashMap::new();
+    let mut has_non_standard_extensions = false;
+    for ext in &extensions {
+        project_extensions.push(ext.id.clone());
+        if let Some(pid) = &ext.project_id {
+            if *pid != ext.id {
+                extension_urls.insert(ext.id.clone(), pid.clone());
+                has_non_standard_extensions = true;
+            }
+        }
+        if !["pen", "music"].contains(&ext.id.as_str()) {
+            has_non_standard_extensions = true;
+        }
+    }
+    // Deduplicate
+    project_extensions.sort();
+    project_extensions.dedup();
+
+    if has_non_standard_extensions {
+        println!(
+            "{}",
+            "Warning: Project contains extensions not supported by vanilla Scratch. It may only run on TurboWarp or compatible mods."
+                .yellow()
+        );
+    }
+
     let project = sb3::Sb3Project {
         targets,
-        monitors: vec![],
-        extensions: config.project.extensions.unwrap_or_default(),
+        monitors: Vec::new(),
+        extensions: project_extensions,
+        extension_urls,
         meta: sb3::Meta {
             semver: "3.0.0".to_string(),
             vm: "0.2.0".to_string(),
-            agent: "Scrust 0.1.4".to_string(),
+            agent: "Scrust 0.1.5".to_string(),
         },
     };
 

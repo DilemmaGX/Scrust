@@ -269,6 +269,7 @@ fn attach_comment(stmt: Stmt, comment: String) -> Stmt {
         Stmt::Until(c, b, _) => Stmt::Until(c, b, Some(comment)),
         Stmt::Match(e, c, d, _) => Stmt::Match(e, c, d, Some(comment)),
         Stmt::Return(e, _) => Stmt::Return(e, Some(comment)),
+        Stmt::CBlock(n, a, b, _) => Stmt::CBlock(n, a, b, Some(comment)),
         Stmt::Comment(_) => stmt,
     }
 }
@@ -285,6 +286,7 @@ fn stmt(input: &str) -> IResult<&str, Stmt> {
         stmt_var_decl,
         stmt_assign,
         stmt_return,
+        stmt_c_block,
         stmt_expr,
     ))(input)?;
 
@@ -294,6 +296,12 @@ fn stmt(input: &str) -> IResult<&str, Stmt> {
     Ok((input, s))
 }
 
+fn stmt_c_block(input: &str) -> IResult<&str, Stmt> {
+    let (input, (name, args)) = ws(func_call)(input)?;
+    let (input, body) = ws(block)(input)?;
+    Ok((input, Stmt::CBlock(name, args, body, None)))
+}
+
 fn block(input: &str) -> IResult<&str, Vec<Stmt>> {
     delimited(ws(char('{')), many0(ws(stmt)), ws(char('}')))(input)
 }
@@ -301,11 +309,8 @@ fn block(input: &str) -> IResult<&str, Vec<Stmt>> {
 fn stmt_match(input: &str) -> IResult<&str, Stmt> {
     let (input, _) = ws(tag("match"))(input)?;
     let (input, expr) = ws(expr)(input)?;
-    let (input, cases) = delimited(
-        ws(char('{')),
-        many0(ws(stmt_match_case)),
-        ws(char('}')),
-    )(input)?;
+    let (input, cases) =
+        delimited(ws(char('{')), many0(ws(stmt_match_case)), ws(char('}')))(input)?;
 
     let mut match_cases = Vec::new();
     let mut default_case = None;
@@ -326,10 +331,7 @@ fn stmt_match(input: &str) -> IResult<&str, Stmt> {
 }
 
 fn stmt_match_case(input: &str) -> IResult<&str, (Option<Expr>, Vec<Stmt>)> {
-    let (input, expr) = ws(alt((
-        map(tag("_"), |_| None),
-        map(expr, Some),
-    )))(input)?;
+    let (input, expr) = ws(alt((map(tag("_"), |_| None), map(expr, Some))))(input)?;
     let (input, _) = ws(tag("=>"))(input)?;
     let (input, body) = ws(block)(input)?;
     let (input, _) = opt(ws(char(',')))(input)?; // Optional trailing comma

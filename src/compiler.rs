@@ -1,4 +1,5 @@
 use crate::ast::*;
+use crate::extension::{BlockType, Extension};
 use crate::sb3::{Block, Comment, Costume, Field, Input, Mutation, NormalBlock, Sound, Target};
 use colored::*;
 use md5;
@@ -30,12 +31,16 @@ pub struct CompilerContext<'a> {
     pub procedures: HashMap<String, ProcedureInfo>,
     pub current_proc_args: Option<HashMap<String, Type>>,
     pub local_variables: HashMap<String, String>,
+    pub extensions: &'a [Extension],
+    pub debug: bool,
 }
 
 impl<'a> CompilerContext<'a> {
     pub fn new(
         global_variables: Option<&'a HashMap<String, (String, Value)>>,
         global_lists: Option<&'a HashMap<String, (String, Vec<Value>)>>,
+        extensions: &'a [Extension],
+        debug: bool,
     ) -> Self {
         Self {
             blocks: HashMap::new(),
@@ -51,6 +56,8 @@ impl<'a> CompilerContext<'a> {
             procedures: HashMap::new(),
             current_proc_args: None,
             local_variables: HashMap::new(),
+            extensions,
+            debug,
         }
     }
 
@@ -78,6 +85,9 @@ impl<'a> CompilerContext<'a> {
 
     pub fn add_block(&mut self, block: NormalBlock) -> String {
         let id = Uuid::new_v4().to_string();
+        if self.debug {
+            println!("DEBUG: Adding block {} (opcode: {})", id, block.opcode);
+        }
         self.blocks.insert(id.clone(), Block::Normal(block));
         id
     }
@@ -192,8 +202,10 @@ pub fn compile_target(
     global_variables: Option<&HashMap<String, (String, Value)>>,
     global_lists: Option<&HashMap<String, (String, Vec<Value>)>>,
     project_root: &Path,
+    extensions: &[Extension],
+    debug: bool,
 ) -> (Target, Vec<(PathBuf, String)>) {
-    let mut ctx = CompilerContext::new(global_variables, global_lists);
+    let mut ctx = CompilerContext::new(global_variables, global_lists, extensions, debug);
 
     // Process Globals/Variables first
     for item in &program.items {
@@ -549,51 +561,28 @@ fn compile_procedure(proc: &ProcedureDef, ctx: &mut CompilerContext) -> Option<S
 
 fn compile_function(func: &Function, ctx: &mut CompilerContext) -> Option<String> {
     // Check for Hat attributes
-    let hat_opcode = if let Some(attr) = func.attributes.first() {
-        match attr.name.as_str() {
-            "on_flag_clicked" => Some("event_whenflagclicked"),
-            "on_key_pressed" => Some("event_whenkeypressed"),
-            "on_clone_start" => Some("control_start_as_clone"),
-            "on_broadcast_received" => Some("event_whenbroadcastreceived"),
-            "on_sprite_clicked" => Some("event_whenthisspriteclicked"),
-            "on_backdrop_switches" => Some("event_whenbackdropswitchesto"),
-            "on_greater_than" => Some("event_whengreaterthan"),
-            _ => None,
+    let mut hat_opcode = None;
+    let mut hat_inputs = HashMap::new();
+    let mut hat_fields = HashMap::new();
+
+    if let Some(attr) = func.attributes.first() {
+        if ctx.debug {
+            println!("DEBUG: Checking attribute {}", attr.name);
         }
-    } else {
-        None // Custom block definition (TODO)
-    };
-
-    if let Some(opcode) = hat_opcode {
-        let mut prev_id;
-
-        // Create Hat Block
-        let mut hat_block = NormalBlock {
-            opcode: opcode.to_string(),
-            next: None,
-            parent: None,
-            inputs: HashMap::new(),
-            fields: HashMap::new(),
-            shadow: false,
-            top_level: true,
-            x: Some(0.0), // TODO: layout
-            y: Some(0.0),
-            mutation: None,
-            comment: None,
-        };
-
-        // Handle hat fields (e.g., key option)
-        if opcode == "event_whenkeypressed" {
-            if let Some(attr) = func.attributes.first() {
+        match attr.name.as_str() {
+            "on_flag_clicked" => hat_opcode = Some("event_whenflagclicked"),
+            "on_key_pressed" => {
+                hat_opcode = Some("event_whenkeypressed");
                 if let Some(Expr::String(key)) = attr.args.first() {
-                    hat_block.fields.insert(
+                    hat_fields.insert(
                         "KEY_OPTION".to_string(),
                         Field::Generic(vec![json!(key), Value::Null]),
                     );
                 }
             }
-        } else if opcode == "event_whenbroadcastreceived" {
-            if let Some(attr) = func.attributes.first() {
+            "on_clone_start" => hat_opcode = Some("control_start_as_clone"),
+            "on_broadcast_received" => {
+                hat_opcode = Some("event_whenbroadcastreceived");
                 if let Some(Expr::String(broadcast_name)) = attr.args.first() {
                     let id = ctx
                         .broadcast_map
@@ -609,35 +598,80 @@ fn compile_function(func: &Function, ctx: &mut CompilerContext) -> Option<String
                         new_id
                     };
 
-                    hat_block.fields.insert(
+                    hat_fields.insert(
                         "BROADCAST_OPTION".to_string(),
                         Field::Generic(vec![json!(broadcast_name), json!(id)]),
                     );
                 }
             }
-        } else if opcode == "event_whenbackdropswitchesto" {
-            if let Some(attr) = func.attributes.first() {
+            "on_sprite_clicked" => hat_opcode = Some("event_whenthisspriteclicked"),
+            "on_backdrop_switches" => {
+                hat_opcode = Some("event_whenbackdropswitchesto");
                 if let Some(Expr::String(backdrop)) = attr.args.first() {
-                    hat_block.fields.insert(
+                    hat_fields.insert(
                         "BACKDROP".to_string(),
                         Field::Generic(vec![json!(backdrop), Value::Null]),
                     );
                 }
             }
-        } else if opcode == "event_whengreaterthan" {
-            if let Some(attr) = func.attributes.first() {
+            "on_greater_than" => {
+                hat_opcode = Some("event_whengreaterthan");
                 if let Some(Expr::String(menu)) = attr.args.get(0) {
-                    hat_block.fields.insert(
+                    hat_fields.insert(
                         "WHENGREATERTHANMENU".to_string(),
                         Field::Generic(vec![json!(menu.to_uppercase()), Value::Null]),
                     );
                 }
                 if let Some(val_expr) = attr.args.get(1) {
                     let val_input = compile_expr_input(val_expr, ctx);
-                    hat_block.inputs.insert("VALUE".to_string(), val_input);
+                    hat_inputs.insert("VALUE".to_string(), val_input);
+                }
+            }
+            _ => {
+                // Check extensions for Hat blocks
+                if ctx.debug {
+                    println!("DEBUG: Checking extensions for {}", attr.name);
+                }
+                for ext in ctx.extensions {
+                    if ctx.debug {
+                        println!("DEBUG: Checking extension {}", ext.id);
+                    }
+                    if let Some(block_def) = ext.blocks.get(&attr.name) {
+                        if ctx.debug {
+                            println!(
+                                "DEBUG: Found block def for {}, type {:?}",
+                                attr.name, block_def.block_type
+                            );
+                        }
+                        if block_def.block_type == BlockType::Hat {
+                            hat_opcode = Some(block_def.opcode.as_str());
+                            let (inputs, fields) = map_args_to_block(block_def, &attr.args, ctx);
+                            hat_inputs = inputs;
+                            hat_fields = fields;
+                        }
+                    }
                 }
             }
         }
+    }
+
+    if let Some(opcode) = hat_opcode {
+        let mut prev_id;
+
+        // Create Hat Block
+        let hat_block = NormalBlock {
+            opcode: opcode.to_string(),
+            next: None,
+            parent: None,
+            inputs: hat_inputs,
+            fields: hat_fields,
+            shadow: false,
+            top_level: true,
+            x: Some(0.0), // TODO: layout
+            y: Some(0.0),
+            mutation: None,
+            comment: None,
+        };
 
         let hat_id = ctx.add_block(hat_block);
 
@@ -666,7 +700,14 @@ fn compile_stmt(
     match stmt {
         Stmt::Expr(Expr::Call(name, args), comment)
         | Stmt::Expr(Expr::ProcCall(name, args), comment) => {
-            let (opcode, inputs, fields, mutation) = map_call(name, args, ctx);
+            let (opcode, inputs, fields, mutation, block_type) = map_call(name, args, ctx);
+
+            if block_type == BlockType::Hat {
+                panic!(
+                    "Block '{}' (type Hat) cannot be used as a statement inside a script.",
+                    name
+                );
+            }
 
             let block = NormalBlock {
                 opcode,
@@ -695,6 +736,45 @@ fn compile_stmt(
                 }
             }
 
+            Some(id)
+        }
+        Stmt::CBlock(name, args, body, comment) => {
+            let (opcode, mut inputs, fields, mutation, _block_type) = map_call(name, args, ctx);
+
+            // Compile substack
+            let substack_id = compile_sequence(body, ctx);
+            if let Some(sid) = substack_id {
+                inputs.insert(
+                    "SUBSTACK".to_string(),
+                    Input::Generic(vec![json!(2), json!(sid)]),
+                );
+            }
+
+            let block = NormalBlock {
+                opcode,
+                next: None,
+                parent: parent_id.clone(),
+                inputs: inputs.clone(),
+                fields,
+                shadow: false,
+                top_level: false,
+                x: None,
+                y: None,
+                mutation,
+                comment: None,
+            };
+            let id = ctx.add_block(block);
+            fix_input_parents(ctx, id.clone(), &inputs);
+
+            if let Some(c) = comment {
+                ctx.add_comment(Some(id.clone()), c.clone(), 0.0, 0.0);
+            }
+
+            if let Some(pid) = parent_id {
+                if let Some(Block::Normal(parent_block)) = ctx.blocks.get_mut(&pid) {
+                    parent_block.next = Some(id.clone());
+                }
+            }
             Some(id)
         }
         Stmt::If(cond, then_block, else_block, comment) => {
@@ -881,11 +961,8 @@ fn compile_stmt(
                 default_case: &Option<Vec<Stmt>>,
             ) -> Stmt {
                 if let Some((case_expr, case_body)) = cases.first() {
-                    let cond = Expr::BinOp(
-                        Box::new(expr.clone()),
-                        Op::Eq,
-                        Box::new(case_expr.clone()),
-                    );
+                    let cond =
+                        Expr::BinOp(Box::new(expr.clone()), Op::Eq, Box::new(case_expr.clone()));
                     let remaining_cases = &cases[1..];
                     let else_block = if remaining_cases.is_empty() {
                         default_case.clone()
@@ -914,19 +991,19 @@ fn compile_stmt(
                     Stmt::If(Expr::Bool(true), def.clone(), None, None)
                 } else {
                     // No cases, no default. Do nothing.
-                     Stmt::If(Expr::Bool(false), vec![], None, None)
+                    Stmt::If(Expr::Bool(false), vec![], None, None)
                 }
             }
 
             let stmt_tree = if cases.is_empty() {
-                 if let Some(def) = default_case {
-                     // execute default unconditionally
-                     // We can wrap in "if true"
-                     Stmt::If(Expr::Bool(true), def.clone(), None, None)
-                 } else {
-                     // do nothing
-                     Stmt::If(Expr::Bool(false), vec![], None, None)
-                 }
+                if let Some(def) = default_case {
+                    // execute default unconditionally
+                    // We can wrap in "if true"
+                    Stmt::If(Expr::Bool(true), def.clone(), None, None)
+                } else {
+                    // do nothing
+                    Stmt::If(Expr::Bool(false), vec![], None, None)
+                }
             } else {
                 build_match_tree(expr, cases, default_case)
             };
@@ -936,14 +1013,14 @@ fn compile_stmt(
             // But wait, compile_stmt takes ownership or reference?
             // compile_stmt takes &Stmt.
             // We just constructed a new Stmt.
-            
+
             // We can pass it to compile_stmt.
             // Note: comment is applied to the top-level generated If.
             let mut final_stmt = stmt_tree;
             if let Stmt::If(c, t, e, _) = final_stmt {
-                 final_stmt = Stmt::If(c, t, e, comment.clone());
+                final_stmt = Stmt::If(c, t, e, comment.clone());
             }
-            
+
             compile_stmt(&final_stmt, parent_id, ctx)
         }
         Stmt::VarDecl(name, init, comment) => {
@@ -1110,6 +1187,38 @@ fn find_list_arg(expr: &Expr, ctx: &CompilerContext) -> Option<(String, String)>
     None
 }
 
+fn map_args_to_block(
+    block_def: &crate::extension::BlockDef,
+    args: &Vec<Expr>,
+    ctx: &mut CompilerContext,
+) -> (HashMap<String, Input>, HashMap<String, Field>) {
+    let mut inputs = HashMap::new();
+    let mut fields = HashMap::new();
+
+    for (input_name, mapping) in &block_def.inputs {
+        match mapping {
+            crate::extension::InputMapping::Arg { arg } => {
+                if let Some(expr) = args.get(*arg) {
+                    inputs.insert(input_name.clone(), compile_expr_input(expr, ctx));
+                }
+            }
+        }
+    }
+
+    for (field_name, mapping) in &block_def.fields {
+        match mapping {
+            crate::extension::FieldMapping::Value { value } => {
+                fields.insert(
+                    field_name.clone(),
+                    Field::Generic(vec![json!(value), Value::Null]),
+                );
+            }
+        }
+    }
+
+    (inputs, fields)
+}
+
 fn map_call(
     name: &str,
     args: &Vec<Expr>,
@@ -1119,7 +1228,23 @@ fn map_call(
     HashMap<String, Input>,
     HashMap<String, Field>,
     Option<Mutation>,
+    BlockType,
 ) {
+    // Check extensions
+    for ext in ctx.extensions {
+        if let Some(block_def) = ext.blocks.get(name) {
+            let (inputs, fields) = map_args_to_block(block_def, args, ctx);
+
+            return (
+                block_def.opcode.clone(),
+                inputs,
+                fields,
+                None,
+                block_def.block_type.clone(),
+            );
+        }
+    }
+
     let mut inputs = HashMap::new();
     let mut fields = HashMap::new();
     let mut mutation = None;
@@ -1209,67 +1334,6 @@ fn map_call(
             inputs.insert("STEPS".to_string(), compile_expr_input(&args[0], ctx));
             "motion_movesteps"
         }
-        // Pen Extension
-        "pen_clear" => "pen_clear",
-        "pen_stamp" => "pen_stamp",
-        "pen_down" => "pen_penDown",
-        "pen_up" => "pen_penUp",
-        "set_pen_color" => {
-            inputs.insert("COLOR".to_string(), compile_expr_input(&args[0], ctx));
-            "pen_setPenColorToColor"
-        }
-        "change_pen_hue_by" => {
-            inputs.insert("HUE".to_string(), compile_expr_input(&args[0], ctx));
-            "pen_changePenHueBy"
-        }
-        "set_pen_hue_to" => {
-            inputs.insert("HUE".to_string(), compile_expr_input(&args[0], ctx));
-            "pen_setPenHueToNumber"
-        }
-        "change_pen_shade_by" => {
-            inputs.insert("SHADE".to_string(), compile_expr_input(&args[0], ctx));
-            "pen_changePenShadeBy"
-        }
-        "set_pen_shade_to" => {
-            inputs.insert("SHADE".to_string(), compile_expr_input(&args[0], ctx));
-            "pen_setPenShadeToNumber"
-        }
-        "change_pen_size_by" => {
-            inputs.insert("SIZE".to_string(), compile_expr_input(&args[0], ctx));
-            "pen_changePenSizeBy"
-        }
-        "set_pen_size_to" => {
-            inputs.insert("SIZE".to_string(), compile_expr_input(&args[0], ctx));
-            "pen_setPenSizeTo"
-        }
-        // Music Extension
-        "play_drum" => {
-            inputs.insert("DRUM".to_string(), compile_expr_input(&args[0], ctx));
-            inputs.insert("BEATS".to_string(), compile_expr_input(&args[1], ctx));
-            "music_playDrumForBeats"
-        }
-        "rest_for" => {
-            inputs.insert("BEATS".to_string(), compile_expr_input(&args[0], ctx));
-            "music_restForBeats"
-        }
-        "play_note" => {
-            inputs.insert("NOTE".to_string(), compile_expr_input(&args[0], ctx));
-            inputs.insert("BEATS".to_string(), compile_expr_input(&args[1], ctx));
-            "music_playNoteForBeats"
-        }
-        "set_instrument" => {
-            inputs.insert("INSTRUMENT".to_string(), compile_expr_input(&args[0], ctx));
-            "music_setInstrument"
-        }
-        "change_tempo_by" => {
-            inputs.insert("TEMPO".to_string(), compile_expr_input(&args[0], ctx));
-            "music_changeTempo"
-        }
-        "set_tempo_to" => {
-            inputs.insert("TEMPO".to_string(), compile_expr_input(&args[0], ctx));
-            "music_setTempo"
-        }
-        "get_tempo" => "music_getTempo",
         "turn_right" => {
             inputs.insert("DEGREES".to_string(), compile_expr_input(&args[0], ctx));
             "motion_turnright"
@@ -1968,7 +2032,29 @@ fn map_call(
         }
     };
 
-    (opcode.to_string(), inputs, fields, mutation)
+    let block_type = match opcode {
+        op if op.starts_with("operator_") => BlockType::Reporter,
+        op if op.starts_with("sensing_") => match op {
+            "sensing_askandwait" | "sensing_resettimer" | "sensing_setdragmode" => {
+                BlockType::Command
+            }
+            _ => BlockType::Reporter,
+        },
+        op if op.starts_with("data_") => match op {
+            "data_itemoflist" | "data_lengthoflist" | "data_listcontainsitem" => {
+                BlockType::Reporter
+            }
+            _ => BlockType::Command,
+        },
+        "looks_size" | "looks_costumenumbername" | "looks_backdropnumbername" => {
+            BlockType::Reporter
+        }
+        "motion_xposition" | "motion_yposition" | "motion_direction" => BlockType::Reporter,
+        "sound_volume" => BlockType::Reporter,
+        _ => BlockType::Command,
+    };
+
+    (opcode.to_string(), inputs, fields, mutation, block_type)
 }
 
 fn compile_bool_arg(expr: &Expr, ctx: &mut CompilerContext) -> Input {
@@ -2069,23 +2155,19 @@ fn compile_expr_input(expr: &Expr, ctx: &mut CompilerContext) -> Input {
         }
         Expr::Variable(name) => {
             // Find variable ID
-            let var_id = ctx
-                .local_variables
-                .get(name)
-                .cloned()
-                .or_else(|| {
-                    ctx.variables
-                        .iter()
-                .find(|(_, (vname, _))| vname == name)
-                .map(|(id, _)| id.clone())
-                .or_else(|| {
-                    ctx.global_variables.and_then(|globals| {
-                        globals
-                            .iter()
-                            .find(|(_, (vname, _))| vname == name)
-                            .map(|(id, _)| id.clone())
+            let var_id = ctx.local_variables.get(name).cloned().or_else(|| {
+                ctx.variables
+                    .iter()
+                    .find(|(_, (vname, _))| vname == name)
+                    .map(|(id, _)| id.clone())
+                    .or_else(|| {
+                        ctx.global_variables.and_then(|globals| {
+                            globals
+                                .iter()
+                                .find(|(_, (vname, _))| vname == name)
+                                .map(|(id, _)| id.clone())
+                        })
                     })
-                })
             });
 
             if let Some(vid) = var_id {
@@ -2129,7 +2211,18 @@ fn compile_expr_input(expr: &Expr, ctx: &mut CompilerContext) -> Input {
         }
         Expr::Call(name, args) | Expr::ProcCall(name, args) => {
             // Compile reporter block
-            let (opcode, inputs, fields, mutation) = map_call(name, args, ctx);
+            let (opcode, inputs, fields, mutation, block_type) = map_call(name, args, ctx);
+
+            if block_type == BlockType::Command
+                || block_type == BlockType::Hat
+                || block_type == BlockType::CShape
+            {
+                panic!(
+                    "Block '{}' (type {:?}) cannot be used as an input/reporter.",
+                    name, block_type
+                );
+            }
+
             let block = NormalBlock {
                 opcode,
                 next: None,

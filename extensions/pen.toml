@@ -1,0 +1,57 @@
+name = "Pen"
+id = "pen"
+
+[blocks.pen_clear]
+opcode = "pen_clear"
+block_type = "command"
+inputs = {}
+
+[blocks.pen_stamp]
+opcode = "pen_stamp"
+block_type = "command"
+inputs = {}
+
+[blocks.pen_down]
+opcode = "pen_penDown"
+block_type = "command"
+inputs = {}
+
+[blocks.pen_up]
+opcode = "pen_penUp"
+block_type = "command"
+inputs = {}
+
+[blocks.set_pen_color]
+opcode = "pen_setPenColorToColor"
+block_type = "command"
+inputs = { "COLOR" = { arg = 0 } }
+
+[blocks.change_pen_hue_by]
+opcode = "pen_changePenHueBy"
+block_type = "command"
+inputs = { "HUE" = { arg = 0 } }
+
+[blocks.set_pen_hue_to]
+opcode = "pen_setPenHueToNumber"
+block_type = "command"
+inputs = { "HUE" = { arg = 0 } }
+
+[blocks.change_pen_shade_by]
+opcode = "pen_changePenShadeBy"
+block_type = "command"
+inputs = { "SHADE" = { arg = 0 } }
+
+[blocks.set_pen_shade_to]
+opcode = "pen_setPenShadeToNumber"
+block_type = "command"
+inputs = { "SHADE" = { arg = 0 } }
+
+[blocks.change_pen_size_by]
+opcode = "pen_changePenSizeBy"
+block_type = "command"
+inputs = { "SIZE" = { arg = 0 } }
+
+[blocks.set_pen_size_to]
+opcode = "pen_setPenSizeTo"
+block_type = "command"
+inputs = { "SIZE" = { arg = 0 } }

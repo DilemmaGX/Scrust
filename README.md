@@ -1,6 +1,6 @@
 ![Scrust](assets/logo-banner.svg)
 
-**Version: 0.1.4 (Alpha)**
+**Version: 0.1.5 (Alpha)**
 
 [![Docs](https://img.shields.io/badge/docs-vitepress-blue)](https://dilemmagx.github.io/Scrust/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -20,6 +20,7 @@
 - **Modern Syntax**: Rust-inspired syntax with functions, variables, and blocks.
 - **Compilation**: Compiles directly to standard `.sb3` Scratch project files.
 - **Extension Support**: Built-in support for Pen and Music extensions.
+- **Custom Extensions**: Load any TurboWarp extension from a URL or embed local JS files directly.
 - **Project Management**: CLI tools to create, build, and manage projects.
 - **Asset Management**: Easily handle sprites, costumes, and sounds.
 
@@ -72,6 +73,7 @@ It includes:
 - Getting Started Guide
 - Language Syntax (Variables, Control Flow, Functions, etc.)
 - Block Reference
+- Extension Guide
 
 ## Contributing
 

@@ -1,0 +1,37 @@
+name = "Music"
+id = "music"
+
+[blocks.play_drum]
+opcode = "music_playDrumForBeats"
+block_type = "command"
+inputs = { "DRUM" = { arg = 0 }, "BEATS" = { arg = 1 } }
+
+[blocks.rest_for]
+opcode = "music_restForBeats"
+block_type = "command"
+inputs = { "BEATS" = { arg = 0 } }
+
+[blocks.play_note]
+opcode = "music_playNoteForBeats"
+block_type = "command"
+inputs = { "NOTE" = { arg = 0 }, "BEATS" = { arg = 1 } }
+
+[blocks.set_instrument]
+opcode = "music_setInstrument"
+block_type = "command"
+inputs = { "INSTRUMENT" = { arg = 0 } }
+
+[blocks.set_tempo_to]
+opcode = "music_setTempo"
+block_type = "command"
+inputs = { "TEMPO" = { arg = 0 } }
+
+[blocks.change_tempo_by]
+opcode = "music_changeTempo"
+block_type = "command"
+inputs = { "TEMPO" = { arg = 0 } }
+
+[blocks.get_tempo]
+opcode = "music_getTempo"
+block_type = "reporter"
+inputs = {}

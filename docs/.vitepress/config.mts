@@ -54,6 +54,13 @@ export default defineConfig({
           { text: "Music", link: "/guide/status/music" },
         ],
       },
+      {
+        text: "Extensions",
+        collapsed: false,
+        items: [
+          { text: "Using Extensions", link: "/guide/extensions" },
+        ],
+      },
     ],
 
     socialLinks: [

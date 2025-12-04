@@ -7,6 +7,8 @@ pub struct Sb3Project {
     pub targets: Vec<Target>,
     pub monitors: Vec<Monitor>,
     pub extensions: Vec<String>,
+    #[serde(rename = "extensionURLs")]
+    pub extension_urls: HashMap<String, String>,
     pub meta: Meta,
 }
 

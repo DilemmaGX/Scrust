@@ -13,7 +13,22 @@ pub struct ScrustConfig {
 pub struct ProjectConfig {
     pub name: String,
     pub output: PathBuf,
-    pub extensions: Option<Vec<String>>,
+    pub extensions: Option<Vec<ExtensionConfig>>,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+#[serde(untagged)]
+pub enum ExtensionConfig {
+    Simple(String),
+    Detailed(DetailedExtensionConfig),
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct DetailedExtensionConfig {
+    pub name: Option<String>,
+    pub id: Option<String>,
+    pub source: Option<String>,
+    pub definition: Option<PathBuf>,
 }
 
 #[derive(Deserialize, Debug)]

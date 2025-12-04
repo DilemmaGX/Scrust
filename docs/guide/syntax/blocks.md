@@ -2,6 +2,26 @@
 
 Scrust includes bindings for most standard Scratch blocks.
 
+## Block Stacks
+
+Statements placed consecutively form a single connected stack of blocks. To create separate, independent stacks (which will appear as floating scripts in Scratch), simply leave a blank line between them.
+
+```rust
+// Stack 1
+move_steps(10);
+turn_right(15);
+
+// Stack 2 (Floating separately)
+go_to(0, 0);
+```
+
+<pre class="blocks">
+move (10) steps
+turn right (15) degrees
+
+go to x: (0) y: (0)
+</pre>
+
 ## Motion
 
 ```rust
@@ -31,16 +51,21 @@ set_rotation_style("left-right");
 move (10) steps
 turn right (15) degrees
 turn left (15) degrees
+
 go to x: (0) y: (0)
 go to [mouse-pointer v]
+
 glide (1.0) secs to x: (0) y: (0)
 glide (1.0) secs to [mouse-pointer v]
+
 point in direction (90)
 point towards [mouse-pointer v]
+
 change x by (10)
 set x to (0)
 change y by (10)
 set y to (0)
+
 if on edge, bounce
 set rotation style [left-right v]
 </pre>
@@ -73,14 +98,18 @@ say [Hello!]
 say [Hello!] for (2.0) seconds
 think [Hmm...]
 think [Hmm...] for (2.0) seconds
+
 switch costume to [costume1 v]
 next costume
 switch backdrop to [backdrop1 v]
 next backdrop
+
 change size by (10)
 set size to (100) %
+
 show
 hide
+
 go to [front v] layer
 go [forward v] (1) layers
 </pre>
@@ -100,6 +129,7 @@ set_volume_to(100);
 start sound [Meow v]
 play sound [Meow v] until done
 stop all sounds
+
 change volume by (-10)
 set volume to (100) %
 </pre>
@@ -131,15 +161,20 @@ username();
 <pre class="blocks">
 &lt;touching [mouse-pointer v] ?&gt;
 &lt;touching color [#ff0000] ?&gt;
+
 (distance to [mouse-pointer v])
+
 ask [What's your name?] and wait
 (answer)
+
 &lt;key [space v] pressed?&gt;
 &lt;mouse down?&gt;
 (mouse x)
 (mouse y)
+
 (timer)
 reset timer
+
 (current [year v])
 (days since 2000)
 (username)

@@ -286,6 +286,9 @@ pub fn compile_target(
                 ctx.add_comment(None, text.clone(), 0.0, 0.0);
                 last_stmt_id = None; // Break chain
             }
+            Item::BatchBreak => {
+                last_stmt_id = None; // Break chain on blank lines
+            }
             Item::Stmt(stmt) => {
                 // Top-level statements
                 if let Some(id) = compile_stmt(stmt, last_stmt_id.clone(), &mut ctx) {

@@ -57,10 +57,9 @@ fn ws<'a, F: 'a, O, E: nom::error::ParseError<&'a str>>(
 where
     F: FnMut(&'a str) -> IResult<&'a str, O, E>,
 {
-    delimited(
+    preceded(
         many0(alt((value((), multispace1), comment))),
         inner,
-        many0(alt((value((), multispace1), comment))),
     )
 }
 
@@ -589,8 +588,52 @@ fn item(input: &str) -> IResult<&str, Item> {
     )))(input)
 }
 
+enum BreakItem {
+    Newlines(usize),
+    Comment,
+}
+
 pub fn parse_program(input: &str) -> IResult<&str, Program> {
-    map(many0(item), |items| Program { items })(input)
+    let mut items = Vec::new();
+    let mut input = input;
+
+    loop {
+        let mut newline_count = 0;
+        // Consume whitespace and check for blank lines
+        let (next_input, tokens) = many0(alt((
+            map(multispace1, |s: &str| {
+                BreakItem::Newlines(s.chars().filter(|c| *c == '\n').count())
+            }),
+            map(comment, |_| BreakItem::Comment),
+        )))(input)?;
+        
+        for token in tokens {
+            match token {
+                BreakItem::Newlines(n) => newline_count += n,
+                BreakItem::Comment => newline_count += 1,
+            }
+        }
+
+        input = next_input;
+
+        if newline_count >= 2 {
+            items.push(Item::BatchBreak);
+        }
+
+        if input.is_empty() {
+            break;
+        }
+
+        match item(input) {
+            Ok((next_input, it)) => {
+                items.push(it);
+                input = next_input;
+            }
+            Err(e) => return Err(e),
+        }
+    }
+
+    Ok((input, Program { items }))
 }
 
 #[cfg(test)]

@@ -11,6 +11,7 @@ pub enum Item {
     Function(Function),
     Procedure(ProcedureDef), // Custom block definition
     Comment(String),         // Top level comment
+    BatchBreak,              // Separator for block batches (blank lines)
     Stmt(Stmt),
 }
 

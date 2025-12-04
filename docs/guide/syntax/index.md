@@ -8,6 +8,7 @@ Scrust is designed to feel familiar to Rust developers while mapping 1:1 to Scra
 
 - **Explicit Visibility**: Variables are `private` (For this sprite only) or `public` (For all sprites) by default.
 - **Structured Flow**: No more dangling blocks. `if`, `loop`, and functions provide structure.
+- **Block Stacks**: Separate groups of blocks with blank lines to create multiple scripts.
 - **Asset Integration**: Define your costumes and sounds right where you use them.
 
 ## Table of Contents

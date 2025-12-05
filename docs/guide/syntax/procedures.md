@@ -187,6 +187,72 @@ proc fast_add(a: number, b: number) -> number {
 }
 ```
 
+## Comprehensive Example
+
+Here is a complete example demonstrating various procedure features, including custom formatting, warp modes, and parameter handling.
+
+<div class="comparison">
+<div>
+<h4>Scrust</h4>
+
+```rust
+#[format("{} + {}", a, b)]
+#[warp]
+proc add(a: number, b: number) -> number {
+    return a + b;
+}
+
+#[format("say {} to {}", msg, name)]
+#[nowarp]
+proc greet(name: string, msg: string) {
+    say(join(msg, join(", ", name)));
+}
+
+#[format("param2: {}", p2)]
+proc partial_format(p1: number, p2: number) {
+    say(join("p1: ", join(p1, join(", p2: ", p2))));
+}
+
+proc no_format(val: string) {
+    say(join("Default: ", val));
+}
+
+#[on_flag_clicked]
+fn main() {
+    say(add(1, 2));
+    greet("World", "Hello");
+    partial_format(10, 20);
+    no_format("test");
+}
+```
+
+</div>
+<div>
+<h4>Scratch</h4>
+
+<pre class="blocks">
+define (a) + (b)
+return ((a) + (b))
+
+define say (msg) to (name)
+say (join (msg) (join [, ] (name)))
+
+define param2: (p2) (p1)
+say (join [p1: ] (join (p1) (join [, p2: ] (p2))))
+
+define no_format (val)
+say (join [Default: ] (val))
+
+when flag clicked
+say ((1) + (2) :: custom)
+say [Hello] to [World] :: custom
+param2: (20) (10) :: custom
+no_format [test] :: custom
+</pre>
+
+</div>
+</div>
+
 <style>
 .comparison {
     display: grid;

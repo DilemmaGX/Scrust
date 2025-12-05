@@ -136,6 +136,8 @@ pub struct Mutation {
     pub argumentdefaults: Option<String>, // JSON string array
     #[serde(rename = "warp")]
     pub warp: Option<String>, // "true" or "false" or boolean? Usually string in mutation
+    #[serde(rename = "return", skip_serializing_if = "Option::is_none")]
+    pub return_: Option<String>, // "1" or null
 }
 
 #[derive(Serialize, Deserialize, Debug)]

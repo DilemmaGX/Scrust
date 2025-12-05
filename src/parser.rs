@@ -470,10 +470,28 @@ fn item_procedure(input: &str) -> IResult<&str, Item> {
         ),
         ws(char(')')),
     )(input)?;
+    let (input, return_type) = opt(preceded(ws(tag("->")), ws(type_spec)))(input)?;
     let (input, body) = ws(block)(input)?;
 
     let is_warp = attributes.iter().any(|a| a.name == "warp")
         && !attributes.iter().any(|a| a.name == "nowarp");
+
+    let format_attr = attributes.iter().find(|a| a.name == "format");
+    let format = if let Some(attr) = format_attr {
+        if let Some(Expr::String(pattern)) = attr.args.first() {
+            let mut args = Vec::new();
+            for arg in attr.args.iter().skip(1) {
+                if let Expr::Variable(name) = arg {
+                    args.push(name.clone());
+                }
+            }
+            Some((pattern.clone(), args))
+        } else {
+            None
+        }
+    } else {
+        None
+    };
 
     Ok((
         input,
@@ -484,7 +502,9 @@ fn item_procedure(input: &str) -> IResult<&str, Item> {
                 .map(|(n, t)| Param { name: n, ty: t })
                 .collect(),
             body,
+            return_type,
             is_warp,
+            format,
             comment,
         }),
     ))

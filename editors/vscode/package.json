@@ -2,7 +2,7 @@
 	"name": "scrust-vscode",
 	"displayName": "Scrust Language Support",
 	"description": "Language support for Scrust (Scratch Rust)",
-	"version": "0.1.5",
+	"version": "0.1.6",
 	"publisher": "scrust",
 	"repository": {
 		"type": "git",

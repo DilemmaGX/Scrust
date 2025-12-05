@@ -205,6 +205,10 @@ fn build(config_path: PathBuf, debug: bool) -> Result<()> {
     let mut extension_urls = HashMap::new();
     let mut has_non_standard_extensions = false;
     for ext in &extensions {
+        if ext.id == "return" {
+            has_non_standard_extensions = true;
+            continue;
+        }
         project_extensions.push(ext.id.clone());
         if let Some(pid) = &ext.project_id {
             if *pid != ext.id {

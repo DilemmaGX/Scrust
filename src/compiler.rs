@@ -14,7 +14,9 @@ pub struct ProcedureInfo {
     pub proccode: String,
     pub arg_ids: Vec<String>,
     pub arg_names: Vec<String>,
+    pub param_ids: Vec<String>,
     pub warp: bool,
+    pub return_type: Option<Type>,
 }
 
 pub struct CompilerContext<'a> {
@@ -251,19 +253,71 @@ pub fn compile_target(
         } else if let Item::Sound(decl) = item {
             ctx.add_sound(decl.name.clone(), decl.path.clone(), project_root);
         } else if let Item::Procedure(proc) = item {
-            let mut arg_ids = Vec::new();
-            let mut arg_names = Vec::new();
-            let mut proccode = proc.name.clone();
-
-            for param in &proc.params {
-                match param.ty {
-                    Type::Boolean => proccode.push_str(" %b"),
-                    Type::Number => proccode.push_str(" %n"),
-                    _ => proccode.push_str(" %s"),
-                }
-                arg_ids.push(Uuid::new_v4().to_string());
-                arg_names.push(param.name.clone());
+            let mut param_ids = Vec::new();
+            for _ in &proc.params {
+                param_ids.push(Uuid::new_v4().to_string());
             }
+
+            let (proccode, arg_ids, arg_names) = if let Some((pattern, args)) = &proc.format {
+                let mut proccode = String::new();
+                let mut arg_ids = Vec::new();
+                let mut arg_names = Vec::new();
+                let mut used_params = std::collections::HashSet::new();
+
+                let parts: Vec<&str> = pattern.split("{}").collect();
+                for (i, part) in parts.iter().enumerate() {
+                    proccode.push_str(part);
+                    if i < parts.len() - 1 {
+                        if let Some(arg_name) = args.get(i) {
+                            if let Some(idx) = proc.params.iter().position(|p| &p.name == arg_name) {
+                                let param = &proc.params[idx];
+                                match param.ty {
+                                    Type::Boolean => proccode.push_str("%b"),
+                                    Type::Number => proccode.push_str("%n"),
+                                    _ => proccode.push_str("%s"),
+                                }
+                                arg_ids.push(param_ids[idx].clone());
+                                arg_names.push(param.name.clone());
+                                used_params.insert(param.name.clone());
+                            } else {
+                                proccode.push_str("%s");
+                                arg_ids.push(Uuid::new_v4().to_string());
+                                arg_names.push(arg_name.clone());
+                            }
+                        }
+                    }
+                }
+
+                // Append unused params
+                for (i, param) in proc.params.iter().enumerate() {
+                    if !used_params.contains(&param.name) {
+                        match param.ty {
+                            Type::Boolean => proccode.push_str(" %b"),
+                            Type::Number => proccode.push_str(" %n"),
+                            _ => proccode.push_str(" %s"),
+                        }
+                        arg_ids.push(param_ids[i].clone());
+                        arg_names.push(param.name.clone());
+                    }
+                }
+
+                (proccode, arg_ids, arg_names)
+            } else {
+                let mut proccode = proc.name.clone();
+                let mut arg_ids = Vec::new();
+                let mut arg_names = Vec::new();
+
+                for (i, param) in proc.params.iter().enumerate() {
+                    match param.ty {
+                        Type::Boolean => proccode.push_str(" %b"),
+                        Type::Number => proccode.push_str(" %n"),
+                        _ => proccode.push_str(" %s"),
+                    }
+                    arg_ids.push(param_ids[i].clone());
+                    arg_names.push(param.name.clone());
+                }
+                (proccode, arg_ids, arg_names)
+            };
 
             ctx.procedures.insert(
                 proc.name.clone(),
@@ -271,7 +325,9 @@ pub fn compile_target(
                     proccode,
                     arg_ids,
                     arg_names,
+                    param_ids,
                     warp: proc.is_warp,
+                    return_type: proc.return_type.clone(),
                 },
             );
         }
@@ -414,6 +470,7 @@ fn compile_procedure(proc: &ProcedureDef, ctx: &mut CompilerContext) -> Option<S
         argumentnames: Some(serde_json::to_string(&info.arg_names).unwrap()),
         argumentdefaults: Some(serde_json::to_string(&vec![""; info.arg_names.len()]).unwrap()),
         warp: Some(info.warp.to_string()),
+        return_: None,
     };
 
     let prototype_block = NormalBlock {
@@ -701,6 +758,44 @@ fn compile_stmt(
     ctx: &mut CompilerContext,
 ) -> Option<String> {
     match stmt {
+        Stmt::Return(val, comment) => {
+            let val_input = if let Some(v) = val {
+                compile_expr_input(v, ctx)
+            } else {
+                // Default to empty string
+                Input::Generic(vec![json!(1), json!([10, ""])])
+            };
+
+            let mut inputs = HashMap::new();
+            inputs.insert("VALUE".to_string(), val_input);
+
+            let block = NormalBlock {
+                opcode: "procedures_return".to_string(),
+                next: None,
+                parent: parent_id.clone(),
+                inputs: inputs.clone(),
+                fields: HashMap::new(),
+                shadow: false,
+                top_level: false,
+                x: None,
+                y: None,
+                mutation: None,
+                comment: None,
+            };
+            let id = ctx.add_block(block);
+            fix_input_parents(ctx, id.clone(), &inputs);
+
+            if let Some(c) = comment {
+                ctx.add_comment(Some(id.clone()), c.clone(), 0.0, 0.0);
+            }
+
+            if let Some(pid) = parent_id {
+                if let Some(Block::Normal(parent_block)) = ctx.blocks.get_mut(&pid) {
+                    parent_block.next = Some(id.clone());
+                }
+            }
+            Some(id)
+        }
         Stmt::Expr(Expr::Call(name, args), comment)
         | Stmt::Expr(Expr::ProcCall(name, args), comment) => {
             let (opcode, inputs, fields, mutation, block_type) = map_call(name, args, ctx);
@@ -1969,19 +2064,29 @@ fn map_call(
         _ => {
             if let Some(info) = ctx.procedures.get(name).cloned() {
                 for (i, arg) in args.iter().enumerate() {
-                    if i < info.arg_ids.len() {
-                        inputs.insert(info.arg_ids[i].clone(), compile_expr_input(arg, ctx));
+                    if i < info.param_ids.len() {
+                        inputs.insert(info.param_ids[i].clone(), compile_expr_input(arg, ctx));
                     }
                 }
+
+                // Create default values array (empty strings)
+                let defaults: Vec<String> = vec!["".to_string(); info.arg_ids.len()];
+
+                let return_val = if info.return_type.is_some() {
+                    Some("1".to_string())
+                } else {
+                    None
+                };
 
                 mutation = Some(Mutation {
                     tag_name: "mutation".to_string(),
                     children: Some(vec![]),
                     proccode: Some(info.proccode),
                     argumentids: Some(serde_json::to_string(&info.arg_ids).unwrap()),
-                    argumentnames: None,
-                    argumentdefaults: None,
+                    argumentnames: Some(serde_json::to_string(&info.arg_names).unwrap()),
+                    argumentdefaults: Some(serde_json::to_string(&defaults).unwrap()),
                     warp: Some(info.warp.to_string()),
+                    return_: return_val,
                 });
 
                 "procedures_call"
@@ -1997,6 +2102,17 @@ fn map_call(
     };
 
     let block_type = match opcode {
+        "procedures_call" => {
+            if let Some(info) = ctx.procedures.get(name) {
+                if info.return_type.is_some() {
+                    BlockType::Reporter
+                } else {
+                    BlockType::Command
+                }
+            } else {
+                BlockType::Command
+            }
+        }
         op if op.starts_with("operator_") => BlockType::Reporter,
         op if op.starts_with("sensing_") => match op {
             "sensing_askandwait" | "sensing_resettimer" | "sensing_setdragmode" => {

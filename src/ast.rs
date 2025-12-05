@@ -27,7 +27,9 @@ pub struct ProcedureDef {
     pub name: String,
     pub params: Vec<Param>,
     pub body: Vec<Stmt>,
+    pub return_type: Option<Type>,
     pub is_warp: bool, // Run without screen refresh
+    pub format: Option<(String, Vec<String>)>, // Custom format: (pattern, args)
     pub comment: Option<String>,
 }
 

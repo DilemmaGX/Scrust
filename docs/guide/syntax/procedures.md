@@ -116,6 +116,77 @@ define animate_movement
 </div>
 </div>
 
+## Returning Values
+
+You can define a return type for a procedure and return values from it.
+
+> [!WARNING]
+> **Extension Feature**
+> Returning values from procedures is **not supported in vanilla Scratch 3.0**. This feature uses custom opcodes (`procedures_return`) that work in **TurboWarp** and other modified Scratch environments. If you load the project in vanilla Scratch, these blocks may appear as undefined.
+
+```rust
+proc add(a: number, b: number) -> number {
+    return a + b;
+}
+
+// Usage
+say(add(10, 20));
+```
+
+<pre class="blocks">
+define add (a) (b)
+return ((a) + (b))
+
+say (add (10) (20) :: custom)
+</pre>
+
+## Custom Block Formatting
+
+You can customize the text and layout of your procedure block using the `#[format(...)]` attribute. This allows you to create blocks that read more like natural sentences, just like built-in Scratch blocks.
+
+### Basic Formatting
+
+Use the `#[format]` attribute with a string containing `{}` placeholders. The arguments following the string match the procedure parameters.
+
+```rust
+#[format("say {} to {}", message, target)]
+proc greet(target: string, message: string) {
+    say(join(message, join(", ", target)));
+}
+```
+
+<pre class="blocks">
+define say (message) to (target)
+say (join (message) (join [, ] (target)))
+</pre>
+
+### Unused Parameters
+
+Any parameters defined in the procedure but not included in the `#[format]` string will be automatically appended to the end of the block.
+
+```rust
+#[format("update score: {}", score)]
+proc update(score: number, hidden_param: boolean) {
+    // ...
+}
+```
+
+<pre class="blocks">
+define update score: (score) &lt;hidden_param&gt;
+</pre>
+
+### Combining with Warp
+
+You can use `#[format]` together with `#[warp]` or `#[nowarp]` to control both appearance and execution speed.
+
+```rust
+#[format("{} + {}", a, b)]
+#[warp]
+proc fast_add(a: number, b: number) -> number {
+    return a + b;
+}
+```
+
 <style>
 .comparison {
     display: grid;

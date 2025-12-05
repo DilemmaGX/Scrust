@@ -94,6 +94,17 @@ pub fn load_extensions(
         for config in configs {
             match config {
                 ExtensionConfig::Simple(id) => {
+                    if id == "return" {
+                        // Special built-in "return" extension
+                        extensions.push(Extension {
+                            name: "Return".to_string(),
+                            id: "return".to_string(),
+                            blocks: HashMap::new(),
+                            project_id: None,
+                        });
+                        continue;
+                    }
+
                     if let Some(mut ext) = dir_extensions.get(id).cloned() {
                         ext.project_id = Some(id.clone());
                         extensions.push(ext);

@@ -1,0 +1,47 @@
+<svg width="1280" height="512" viewBox="0 0 1280 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="round-rect">
+      <rect x="64" y="64" width="1152" height="384" rx="96" ry="96" />
+    </clipPath>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="-10" dy="10" stdDeviation="10" flood-color="#000000" flood-opacity="0.3" />
+    </filter>
+  </defs>
+  <!-- Base Background -->
+  <rect x="64" y="64" width="1152" height="384" rx="96" ry="96" fill="#9966ff" />
+  <!-- Layer c=288 #4c97ff -->
+  <path d="M 0.00 0.00 L 1280.00 0.00 L 1280.00 512.00 L 224.00 512.00 L 0.00 288.00 Z" fill="#4c97ff" clip-path="url(#round-rect)" filter="url(#shadow)" />
+  <!-- Layer c=192 #ff6680 -->
+  <path d="M 0.00 0.00 L 1280.00 0.00 L 1280.00 512.00 L 320.00 512.00 L 0.00 192.00 Z" fill="#ff6680" clip-path="url(#round-rect)" filter="url(#shadow)" />
+  <!-- Layer c=96 #ff8c1a -->
+  <path d="M 0.00 0.00 L 1280.00 0.00 L 1280.00 512.00 L 416.00 512.00 L 0.00 96.00 Z" fill="#ff8c1a" clip-path="url(#round-rect)" filter="url(#shadow)" />
+  <!-- Layer c=0 #9966ff -->
+  <path d="M 0.00 0.00 L 1280.00 0.00 L 1280.00 512.00 L 512.00 512.00 L 0.00 0.00 Z" fill="#9966ff" clip-path="url(#round-rect)" filter="url(#shadow)" />
+  <!-- Layer c=-96 #4c97ff -->
+  <path d="M 96.00 0.00 L 1280.00 0.00 L 1280.00 512.00 L 608.00 512.00 Z" fill="#4c97ff" clip-path="url(#round-rect)" filter="url(#shadow)" />
+  <!-- Layer c=-192 #ff6680 -->
+  <path d="M 192.00 0.00 L 1280.00 0.00 L 1280.00 512.00 L 704.00 512.00 Z" fill="#ff6680" clip-path="url(#round-rect)" filter="url(#shadow)" />
+  <!-- Layer c=-288 #ff8c1a -->
+  <path d="M 288.00 0.00 L 1280.00 0.00 L 1280.00 512.00 L 800.00 512.00 Z" fill="#ff8c1a" clip-path="url(#round-rect)" filter="url(#shadow)" />
+  <!-- Layer c=-384 #9966ff -->
+  <path d="M 384.00 0.00 L 1280.00 0.00 L 1280.00 512.00 L 896.00 512.00 Z" fill="#9966ff" clip-path="url(#round-rect)" filter="url(#shadow)" />
+  <!-- Layer c=-480 #4c97ff -->
+  <path d="M 480.00 0.00 L 1280.00 0.00 L 1280.00 512.00 L 992.00 512.00 Z" fill="#4c97ff" clip-path="url(#round-rect)" filter="url(#shadow)" />
+  <!-- Layer c=-576 #ff6680 -->
+  <path d="M 576.00 0.00 L 1280.00 0.00 L 1280.00 512.00 L 1088.00 512.00 Z" fill="#ff6680" clip-path="url(#round-rect)" filter="url(#shadow)" />
+  <!-- Layer c=-672 #ff8c1a -->
+  <path d="M 672.00 0.00 L 1280.00 0.00 L 1280.00 512.00 L 1184.00 512.00 Z" fill="#ff8c1a" clip-path="url(#round-rect)" filter="url(#shadow)" />
+  <!-- Layer c=-768 #9966ff -->
+  <path d="M 768.00 0.00 L 1280.00 0.00 L 1280.00 512.00 L 1280.00 512.00 Z" fill="#9966ff" clip-path="url(#round-rect)" filter="url(#shadow)" />
+  <!-- Layer c=-864 #4c97ff -->
+  <path d="M 864.00 0.00 L 1280.00 0.00 L 1280.00 416.00 Z" fill="#4c97ff" clip-path="url(#round-rect)" filter="url(#shadow)" />
+  <!-- Layer c=-960 #ff6680 -->
+  <path d="M 960.00 0.00 L 1280.00 0.00 L 1280.00 320.00 Z" fill="#ff6680" clip-path="url(#round-rect)" filter="url(#shadow)" />
+  <!-- Layer c=-1056 #ff8c1a -->
+  <path d="M 1056.00 0.00 L 1280.00 0.00 L 1280.00 224.00 Z" fill="#ff8c1a" clip-path="url(#round-rect)" filter="url(#shadow)" />
+  <!-- Layer c=-1152 #9966ff -->
+  <path d="M 1152.00 0.00 L 1280.00 0.00 L 1280.00 128.00 Z" fill="#9966ff" clip-path="url(#round-rect)" filter="url(#shadow)" />
+  <!-- Layer c=-1248 #4c97ff -->
+  <path d="M 1248.00 0.00 L 1280.00 0.00 L 1280.00 32.00 Z" fill="#4c97ff" clip-path="url(#round-rect)" filter="url(#shadow)" />
+  <text x="640.0" y="256.0" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" font-size="200" fill="white" text-anchor="middle" dominant-baseline="central" filter="url(#shadow)" dy="-20">Scrust</text>
+</svg>

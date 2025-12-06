@@ -6,7 +6,7 @@
 | `repeat(times) { ... }` | <pre class="blocks">repeat (times)</pre> | |
 | `forever { ... }` | <pre class="blocks">forever</pre> | |
 | `if condition { ... }` | <pre class="blocks">if &lt;condition&gt; then</pre> | |
-| `if condition { ... } else { ... }` | <pre class="blocks">if &lt;condition&gt; then :: control else :: control</pre> | |
+| `if condition { ... } else { ... }` | <pre class="blocks">if &lt;condition&gt; then ... else ... end</pre> | |
 | `match expr { val => { ... } }` | <pre class="blocks">if &lt;(expr) = (val)&gt; then</pre> | Compiles to nested if-else |
 | `wait_until(condition)` | <pre class="blocks">wait until &lt;condition&gt;</pre> | |
 | `until condition { ... }` | <pre class="blocks">repeat until &lt;condition&gt;</pre> | |

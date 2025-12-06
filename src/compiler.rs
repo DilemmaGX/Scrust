@@ -269,7 +269,8 @@ pub fn compile_target(
                     proccode.push_str(part);
                     if i < parts.len() - 1 {
                         if let Some(arg_name) = args.get(i) {
-                            if let Some(idx) = proc.params.iter().position(|p| &p.name == arg_name) {
+                            if let Some(idx) = proc.params.iter().position(|p| &p.name == arg_name)
+                            {
                                 let param = &proc.params[idx];
                                 match param.ty {
                                     Type::Boolean => proccode.push_str("%b"),

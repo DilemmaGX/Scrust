@@ -71,9 +71,9 @@ a || b
 <div>
 <h4>Scratch</h4>
 <pre class="blocks">
-&lt;&lt;a &gt; and &lt;b &gt;&gt;
-&lt;&lt;a &gt; or &lt;b &gt;&gt;
-&lt;not &lt;a &gt;&gt;
+&lt;&lt;a&gt; and &lt;b&gt;&gt;
+&lt;&lt;a&gt; or &lt;b&gt;&gt;
+&lt;not &lt;a&gt;&gt;
 </pre>
 </div>
 </div>

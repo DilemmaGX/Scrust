@@ -17,6 +17,6 @@
 | `set_y_to(y)` | <pre class="blocks">set y to (y)</pre> | |
 | `if_on_edge_bounce()` | <pre class="blocks">if on edge, bounce</pre> | |
 | `set_rotation_style("style")` | <pre class="blocks">set rotation style [style v]</pre> | Options: "left-right", "don't rotate", "all around" |
-| `x_position()` | <pre class="blocks">x position</pre> | |
-| `y_position()` | <pre class="blocks">y position</pre> | |
-| `direction()` | <pre class="blocks">direction</pre> | |
+| `x_position()` | <pre class="blocks">(x position)</pre> | |
+| `y_position()` | <pre class="blocks">(y position)</pre> | |
+| `direction()` | <pre class="blocks">(direction)</pre> | |

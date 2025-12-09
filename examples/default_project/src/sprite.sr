@@ -1,6 +1,0 @@
-costume "costume1" "assets/sprite.svg" 32 32;
-
-#[on_flag_clicked]
-fn start() {
-    say("Hello, Scrust!");
-}

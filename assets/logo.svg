@@ -1,0 +1,44 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="round-rect">
+      <rect x="64" y="64" width="384" height="384" rx="96" ry="96" />
+    </clipPath>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="-10" dy="10" stdDeviation="10" flood-color="#000000" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <!-- Layer 8: Bottom (Purple) - Background -->
+  <rect x="64" y="64" width="384" height="384" rx="96" ry="96" fill="#9966ff" />
+
+  <!-- Layer 7: Blue -->
+  <!-- y < x + 288 -->
+  <path d="M 0 0 L 512 0 L 512 512 L 224 512 L 0 288 Z" fill="#4c97ff" clip-path="url(#round-rect)" filter="url(#shadow)" />
+
+  <!-- Layer 6: Pink -->
+  <!-- y < x + 192 -->
+  <path d="M 0 0 L 512 0 L 512 512 L 320 512 L 0 192 Z" fill="#ff6680" clip-path="url(#round-rect)" filter="url(#shadow)" />
+
+  <!-- Layer 5: Orange -->
+  <!-- y < x + 96 -->
+  <path d="M 0 0 L 512 0 L 512 512 L 416 512 L 0 96 Z" fill="#ff8c1a" clip-path="url(#round-rect)" filter="url(#shadow)" />
+
+  <!-- Layer 4: Purple -->
+  <!-- y < x -->
+  <path d="M 0 0 L 512 0 L 512 512 Z" fill="#9966ff" clip-path="url(#round-rect)" filter="url(#shadow)" />
+
+  <!-- Layer 3: Blue -->
+  <!-- y < x - 96 -->
+  <path d="M 96 0 L 512 0 L 512 416 Z" fill="#4c97ff" clip-path="url(#round-rect)" filter="url(#shadow)" />
+
+  <!-- Layer 2: Pink -->
+  <!-- y < x - 192 -->
+  <path d="M 192 0 L 512 0 L 512 320 Z" fill="#ff6680" clip-path="url(#round-rect)" filter="url(#shadow)" />
+
+  <!-- Layer 1: Top (Orange) -->
+  <!-- y < x - 288 -->
+  <path d="M 288 0 L 512 0 L 512 224 Z" fill="#ff8c1a" clip-path="url(#round-rect)" filter="url(#shadow)" />
+
+  <text x="256" y="256" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" font-size="240" fill="white" text-anchor="middle" dominant-baseline="central" filter="url(#shadow)" dy="-20">Sr</text>
+
+</svg>

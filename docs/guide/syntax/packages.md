@@ -8,7 +8,6 @@ A package is defined in a `.sr` file (typically placed in a `packages/` director
 
 ```rust
 package math_utils {
-    extensions = ["return"], // Required for return statement
     dependencies = [] // Optional: List of other packages this package depends on
 }
 
@@ -22,26 +21,7 @@ proc add(a: number, b: number) -> number {
 
 The `package` block supports the following fields:
 
-- **extensions**: A list of Scratch extensions that this package requires.
-    - **Important**: If your package uses the `return` statement in any procedure, you **must** include `"return"` in this list.
 - **dependencies**: A list of other package names that this package depends on. When you use this package, all of its dependencies will be automatically loaded.
-
-### The `return` Extension
-
-The `return` statement is not native to standard Scratch "My Blocks". Scrust implements it using a custom extension mechanism. If you use `return` in your package procedures, you must explicitly declare it:
-
-```rust
-package logic {
-    extensions = ["return"]
-}
-
-proc is_even(n: number) -> boolean {
-    if n % 2 == 0 {
-        return true;
-    }
-    return false;
-}
-```
 
 ## Using a Package
 
@@ -87,7 +67,7 @@ Packages can depend on other packages. For example, if `advanced_math` depends o
 **packages/basic_math.sr**
 ```rust
 package basic_math {
-    extensions = ["return"]
+    // extensions = [] 
 }
 
 proc add(a: number, b: number) -> number {

@@ -81,7 +81,9 @@ change [SCORE v] by (1)
 
 ## Scoped Variables (`let`)
 
-Scrust 0.2.1 introduces support for block-scoped variables using the `let` keyword. Unlike `var`, which corresponds to Scratch's global or sprite-local variables, `let` variables are managed by Scrust's memory system and are only valid within the block they are declared in.
+Scrust introduces support for block-scoped variables using the `let` keyword. Unlike `var`, which corresponds to Scratch's global or sprite-local variables, `let` variables are managed by Scrust's memory system and are only valid within the block they are declared in.
+
+This system uses standard Scratch lists, making it fully compatible with vanilla Scratch 3.0.
 
 ### Syntax
 

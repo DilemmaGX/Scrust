@@ -118,11 +118,7 @@ define animate_movement
 
 ## Returning Values
 
-You can define a return type for a procedure and return values from it.
-
-> [!WARNING]
-> **Extension Feature**
-> Returning values from procedures is **not supported in vanilla Scratch 3.0**. This feature uses custom opcodes (`procedures_return`) that work in **TurboWarp** and other modified Scratch environments. If you load the project in vanilla Scratch, these blocks may appear as undefined.
+You can define a return type for a procedure and return values from it. Scrust compiles this into standard Scratch blocks (using lists/variables), so it is fully compatible with vanilla Scratch 3.0.
 
 ```rust
 proc add(a: number, b: number) -> number {
